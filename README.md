@@ -1,5 +1,5 @@
 # README
-This directory aims to extend the work by [Robins and Didelez](https://arxiv.org/pdf/2109.03694.pdf) by using more advanced MCMC samplers to simulate from causal models.
+This directory aims to extend the work by [Robins and Didelez (2022)](https://arxiv.org/pdf/2109.03694.pdf) by using more advanced MCMC samplers to simulate from causal models.
 
 ## Requirements
 To run the contents of this directory run
