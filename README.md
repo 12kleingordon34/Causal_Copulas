@@ -11,4 +11,5 @@ pip install -r requirements.txt
 The current contents of this directory are as follows:
 * [`numpyro_samplers`](./numpyro_samplers/)
 	* [`exploratory_copula_demo.ipynb`](numpyro_samplers/exploratory_copula_demo.ipynb): Contains a record of preliminary attempts to sample from copula models considered by E&D.
+* [`EDAs`](./EDAs/) contain exploratory analyses of simulation outputs.
 * ...
