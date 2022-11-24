@@ -1,0 +1,103 @@
+---
+title: "Comparison of Methods"
+author: "Robin J. Evans"
+date: "25/05/2021"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparison of Methods}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>",
+  cache = FALSE,
+  fig.width=7, 
+  fig.height=7
+)
+# knitr::knit_theme$set("earendel")
+```
+
+As always, we begin by loading the package.
+
+```{r load, include=TRUE, message=FALSE}
+library(causl)
+library(purrr)
+library(rjson)
+library(survey)
+library(ivreg)
+library(tidyverse)
+```
+
+## Load Data
+
+```{r}
+copula_type <- 'constant' # 'constant' or 'variable'
+data_rho_05 = read_csv(paste0('numpyro_samplers/', copula_type, '_copula_samples_rho_05.csv'))
+data_rho_09 = read_csv(paste0('numpyro_samplers/', copula_type, '_copula_samples_rho_09.csv'))
+data_rho_099 = read_csv(paste0('numpyro_samplers/', copula_type, '_copula_samples_rho_099.csv'))
+```
+
+## For $\rho_{XZ} = 0.5$
+
+### OR
+```{r}
+or_rho_05 <- lm(y ~ x*z, data=data_rho_05)
+summary(or_rho_05)
+```
+
+### IPW
+
+```{r}
+mod_num <- lm(x ~ 1, data=data_rho_05)
+num <- dnorm(x=data_rho_05$x, mean=fitted.values(mod_num), sd=summary(mod_num)$sigma)
+mod_den <- lm(x ~ z, data=data_rho_05)
+den <- dnorm(x=data_rho_05$x, mean=fitted.values(mod_den), sd=summary(mod_den)$sigma)
+data_rho_05 <- data_rho_05 %>% mutate(wt=num/den)
+
+lm_rho_05 <- svyglm(y ~ x*z, design = svydesign(id=~1, data=data_rho_05, weights = ~data_rho_05$wt))
+summary(lm_rho_05)
+```
+
+## For $\rho_{XZ} = 0.9$
+### OR
+```{r}
+or_rho_09 <- lm(y ~ x*z, data=data_rho_09)
+summary(or_rho_09)
+```
+### IPW
+```{r}
+mod_num <- lm(x ~ 1, data=data_rho_09)
+num <- dnorm(x=data_rho_09$x, mean=fitted.values(mod_num), sd=summary(mod_num)$sigma)
+mod_den <- lm(x ~ z, data=data_rho_09)
+den <- dnorm(x=data_rho_09$x, mean=fitted.values(mod_den), sd=summary(mod_den)$sigma)
+data_rho_09 <- data_rho_09 %>% mutate(wt=num/den)
+
+lm_rho_09 <- svyglm(y ~ x*z, design = svydesign(id=~1, data=data_rho_09, weights = ~data_rho_09$wt))
+summary(lm_rho_09)
+```
+
+## For $\rho_{XZ} = 0.99$
+### OR
+```{r}
+or_rho_099 <- lm(y ~ x*z, data=data_rho_099)
+summary(or_rho_099)
+```
+### IPW
+```{r}
+mod_num <- lm(x ~ 1, data=data_rho_099)
+num <- dnorm(x=data_rho_099$x, mean=fitted.values(mod_num), sd=summary(mod_num)$sigma)
+mod_den <- lm(x ~ z, data=data_rho_099)
+den <- dnorm(x=data_rho_099$x, mean=fitted.values(mod_den), sd=summary(mod_den)$sigma)
+
+data_rho_099 <- data_rho_099 %>% mutate(wt=num/den)
+
+lm_rho_099 <- svyglm(y ~ x*z, design = svydesign(id=~1, data=data_rho_099, weights = ~data_rho_099$wt))
+summary(lm_rho_099)
+```
