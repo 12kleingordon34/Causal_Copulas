@@ -1,7 +1,7 @@
 ---
-title: "Comparison of Methods"
-author: "Robin J. Evans"
-date: "25/05/2021"
+title: "Exploration of Highly Correlated Simulated Data"
+author: "Dan Manela"
+date: "24/11/2022"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Comparison of Methods}
