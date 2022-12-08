@@ -36,7 +36,9 @@ library(tidyverse)
 
 ## Simulate Data
 
-We firstly take the data from the simulation run in Python. Make sure to run `numpyro_samplers/didelez_simulation.ipynb` before using this notebook.
+We firstly take the data from the simulation run in Python. Make sure to
+run `numpyro_samplers/didelez_simulation.ipynb` before using this
+notebook.
 
 ```{r load_data}
 dat_max <- read_csv('../numpyro_samplers/didelez_samples_python.csv') %>%
@@ -259,15 +261,15 @@ since we are fitting the correct model it is guaranteed to be consistent
 and asymptotically efficient.
 
 ```{r mle, cache=FALSE}
-modY <- fitCausal(dat, formulas = list(Y ~ A0*A1, L ~ A0, ~ A0*A1),
-                  family = c(1,3,1), control=list(maxit=2e4, newton=TRUE))
-modY
+# modY <- fitCausal(dat, formulas = list(Y ~ A0*A1, L ~ A0, ~ A0*A1),
+#                   family = c(1,3,1), control=list(maxit=2e4, newton=TRUE))
+# modY
 ```
 
 ```{r tab_mle, echo=FALSE, cache=TRUE}
-tab_mle <- cbind(modY$pars$Y$beta[1:4], modY$pars$Y$beta_se[1:4], 
-                 modY$pars$Y$beta[1:4]-pars$Y$beta)
-colnames(tab_mle) <- c("Est.", "SE", "Bias")
+# tab_mle <- cbind(modY$pars$Y$beta[1:4], modY$pars$Y$beta_se[1:4], 
+#                  modY$pars$Y$beta[1:4]-pars$Y$beta)
+# colnames(tab_mle) <- c("Est.", "SE", "Bias")
 ```
 
 ### Comparison of Results
@@ -281,15 +283,14 @@ than OR.
 results <- cbind(
   tab_or, 
   tab_ipw, 
-  tab_dr, 
-  tab_mle
+  tab_dr
 )
-results[,1+rep(0:3, each=1)*3] <- round(results[,1+rep(0:3, each=1)*3], 2)
-results[,2+rep(0:3, each=1)*3] <- round(results[,2+rep(0:3, each=1)*3], 3)
-results[,3+(0:3)*3] <- round(results[,3+(0:3)*3], 3)
+results[,1+rep(0:2, each=1)*3] <- round(results[,1+rep(0:2, each=1)*3], 2)
+results[,2+rep(0:2, each=1)*3] <- round(results[,2+rep(0:2, each=1)*3], 3)
+results[,3+(0:2)*3] <- round(results[,3+(0:2)*3], 3)
 results[,ncol(results)] <- round(results[,ncol(results)], 3)
 kableExtra::kbl(results, booktabs=TRUE) %>%
-  kableExtra::add_header_above(c(" ","Outcome Regression"=3,"IP Weighting"=3,"Double Robust"=3,"MLE"=3))
+  kableExtra::add_header_above(c(" ","Outcome Regression"=3,"IP Weighting"=3,"Double Robust"=3)) %>% kableExtra::kable_styling(full_width = F)
 # xtable::xtable(results, digits=c(0,rep(c(2,3,3),4)), align="|r|rrr|rrr|rrr|")
 ```
 
@@ -299,9 +300,8 @@ Checking the number of sigma between true parameters and estimate:
 y_est_or <- abs(tab_or[, 'Bias'] / tab_or[, 'SE'])
 y_est_ipw <- abs(tab_ipw[, 'Bias'] / tab_ipw[, 'SE'])
 y_est_dr <- abs(tab_dr[, 'Bias'] / tab_dr[, 'SE'])
-y_est_mle <- abs(tab_mle[, 'Bias'] / tab_mle[, 'SE'])
 
-cbind(y_est_or, y_est_ipw, y_est_dr, y_est_mle) %>%
+cbind(y_est_or, y_est_ipw, y_est_dr) %>%
   as.data.frame() %>%
   t()
 ```
