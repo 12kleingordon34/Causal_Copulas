@@ -28,14 +28,14 @@ class Copula_Model:
 		"""
 		parsed_model = dict()
 		for var, spec in model_dict.items():
+			parsed_model[var] = {'dist': None, 'formula': {}, 'params': {}, 'link': None}
+
 			# Currently use numpyro.distributions in input, but can change
-			parsed_model[var] = dict()
 			parsed_model[var]['dist'] = self._map_probability_distributions(model_dict[var]['dist'])
 
 			distribution_params = parsed_model[var]['dist'].arg_constraints.keys()
 			assert model_dict[var]['formula'].keys() == distribution_params
 			assert model_dict[var]['params'].keys() == distribution_params
-
 
 			# Check correct number of parameters have been provided
 			### TO DO: Fix confusion between `param` and `'params'` entries
@@ -46,9 +46,9 @@ class Copula_Model:
 						parsed_model[var]['formula'][param]
 					).rhs_termlist
 				)
-				parsed_model[var]['params'] = model_dict[var]['formula'].copy()
+				parsed_model[var]['params'] = model_dict[var]['params'].copy()
 
-			parsed_model[var]['link'] = self._map_link_functions(model_dict['link'])
+			parsed_model[var]['link'] = self._map_link_functions(model_dict[var]['link'])
 		return parsed_model
 		
 	def simulate_data(
@@ -112,13 +112,17 @@ class Copula_Model:
 		Map the link function in the input model dict
 		to its corresponding link function in Numpyro.
 		"""
-		return eval(link_function)
+		if not link_function:
+			return None
+		else:
+			return eval(link_function)
 
-	def _is_model_ordered_and_acyclic(self) -> bool:
+	def _is_model_ordered_and_acyclic(self, parsed_model: dict) -> bool:
 		"""
 		Check whether the input model is acyclic, and whether
 		the order variables are entered are """
-		pass
+		print('WARNING: CHECK PASSES AUTOMATICALLY. FULL SOLUTION ADDED TBC')
+		return True
 
 	def _align_transformation(self, formula, params) -> str:
 		"""
@@ -133,16 +137,42 @@ class Copula_Model:
 
 		TODO: NEED TO ENSURE THAT THE REGEX IS RUN ON THE OUTPUT OF PATSY, AND UPDATE THINGS IN A FOR LOOP (I.E. IT DOESN'T WORK IF THERE ARE MULTIPLE ADDITIVE COMPONENTS IN THE REGEX STRING)
 		"""
-		key_formula = re.findall(self.functional_regex, formula)
-		if not key_formula
+		parsed_terms = patsy.ModelDesc.from_formula(formula)
+		lhs_terms = parsed_terms.lhs_termlist
+		lhs_term_str = lhs_terms[0].name()
 
+		rhs_terms = parsed_terms.rhs_termlist
+		enhanced_rhs_term_list = []
+		for term in rhs_terms:
+			enhanced_rhs_term_list.append(
+				self.__regex_variable_adjustment(term)
+			)
+		enhanced_rhs_term_str = ' + '.join(enhanced_rhs_term_list)
+		
+		enhanced_formula = ' ~ '.join([
+			lhs_term_str, enhanced_rhs_term_str
+		])
+		return enhanced_formula
+
+	def __regex_variable_adjustment(self, formula_term: patsy.Term) -> str:
+		"""
+		"""
+		term_name = formula_term.name()
+		if term_name == 'Intercept':
+			return '1'
+
+		regexed_term = re.findall(self.functional_regex, term_name)
+		if not regexed_term:
+			return term_name
+
+		key_formula = regexed_term[0]
 		orig_vars = re.findall(r"[\w,\_]", key_formula)
 		new_vars = []
 		for var in orig_vars:
 			new_vars.append(f"record_dict['{var}']")
-
+		
 		new_formula = key_formula
 		for orig_var, new_var in zip(orig_vars, new_vars):
 			new_formula = new_formula.replace(orig_var, new_var)
-		new_formula = formula.replace(key_formula, new_formula)
+		new_formula = term_name.replace(key_formula, new_formula)
 		return new_formula
