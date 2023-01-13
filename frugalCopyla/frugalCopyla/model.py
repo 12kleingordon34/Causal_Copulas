@@ -7,8 +7,26 @@ import jax.numpy as jnp
 import numpyro
 import patsy
 
-_DISTRIBUTION_TYPES = ['discrete', 'continuous', 'mixed']
+from frugalCopyla import copula_functions
 
+###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+
+COPULA_TAGS = {
+	'bivariate_gaussian_copula': copula_functions.bivariate_gaussian_copula_lpdf
+}
+_DISTRIBUTION_TYPES = ['discrete', 'continuous', 'mixed']
+# {
+# 	'copula': {
+# 		'class': 'bivariate_gaussian_copula',
+# 		'variables': ['Z', 'Y'],
+# 		'correlation_formula': {'rho': 'cop ~ Z'},
+# 		'correlation_params': {'rho': [0.2, 0.5]},
+# 		'link': 'jax.nn.sigmoid'
+# 	}
+# }
 class Copula_Model:
 	def __init__(self, model_dict: dict) -> None:
 		self.functional_regex = r"[\.,\w,\(]+\(([a-zA-Z, , _,-,*,//]+)[\)]+$"
@@ -27,6 +45,8 @@ class Copula_Model:
 		* Check link function is valid
 		"""
 		parsed_model = dict()
+
+		copula_settings = model_dict.pop('copula', None)
 		for var, spec in model_dict.items():
 			parsed_model[var] = {'dist': None, 'formula': {}, 'params': {}, 'link': None}
 
@@ -39,6 +59,7 @@ class Copula_Model:
 
 			# Check correct number of parameters have been provided
 			### TO DO: Fix confusion between `param` and `'params'` entries
+			parsed_model[var]['full_formula'] = dict()
 			for param in distribution_params:
 				parsed_model[var]['formula'][param] = self._regex_variable_adjustment(model_dict[var]['formula'][param])
 				assert len(model_dict[var]['params'][param].keys()) == len(
@@ -47,8 +68,33 @@ class Copula_Model:
 					).rhs_termlist
 				)
 				parsed_model[var]['params'] = model_dict[var]['params'].copy()
+				parsed_model[var]['full_formula'][param] = self._align_transformation(
+					parsed_model[var]['formula'][param],
+					parsed_model[var]['params'][param]
+				)
 
 			parsed_model[var]['link'] = self._map_link_functions(model_dict[var]['link'])
+
+		if not copula_settings:
+			print('INFO: No copula specified.')
+			return parsed_model
+
+		parsed_model['copula'] = {
+			'class': None,
+			'vars': [],
+			'corr_full_formula': {},
+			'link': None
+		}
+		parsed_model['copula']['class'] = COPULA_TAGS[copula_settings['class']]
+		parsed_model['copula']['vars'] = copula_settings['vars'].copy()
+		for param in copula_settings['formula'].keys():
+			parsed_model['copula']['corr_full_formula'] = self._align_transformation(
+				copula_settings['formula'][param],
+				copula_settings['params'][param]
+			)
+		parsed_model['copula']['link'] = copula_settings['link']
+
+	
 		return parsed_model
 		
 	def simulate_data(
@@ -84,16 +130,14 @@ class Copula_Model:
 	
 
 	def _simulated_data_model(self) -> None:
+		prob_model = self.parsed_model.copy()
+		copula_model = prob_model.pop('copula', None)
 		record_dict = {}
-		for test_idx, test_row in self.parsed_model.items():
-			lin_models_dict = {}
-			for param in test_row['formula'].keys():
-				lin_models_dict[param] = self._align_transformation(
-					test_row['formula'][param], test_row['params'][param]
-				)
+		for test_idx, test_row in prob_model.items():
+			lin_models_str = test_row['full_formula']
 
 			lin_models_evaluated = {}
-			for k, v in lin_models_dict.items():
+			for k, v in lin_models_str.items():
 				lin_models_evaluated[k] = eval(v)
 
 			#### ITS NOT DOING ANYTHING WITH THE SCALE PARAMETER --- NEED TO FIX
@@ -107,6 +151,38 @@ class Copula_Model:
 					test_idx,
 					test_row['dist'](**lin_models_evaluated)
 				)
+		
+		 	# Generate quantiles
+			if copula_model and test_idx in copula_model['vars'].keys():
+				record_dict[f"q_{test_idx}"] = numpyro.deterministic(
+					f"q_{test_idx}",
+					prob_model[test_idx](**lin_models_evaluated).cdf(record_dict[test_idx])
+				)
+				record_dict[f"std_normal_{test_idx}"] = numpyro.deterministic(
+					"std_normal_{test_idx}",
+					jax.distributions(0, 1).icdf(record_dict[f"q_{test_idx}"])
+				)
+			
+		if copula_model:
+			for idx, formula in copula_model['corr_full_formula'].items():
+				record_dict[idx] = numpyro.deterministic(
+					idx,
+					###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+					copula_model['link'](eval(copula_model[idx]['full_formula']))
+				)
+			
+
+			#### HOW TO MAP THE VARS TO THE DICT
+			copula_var_dict = {}
+			for k, v in copula_model['vars']:
+				copula_var_dict[k] = record_dict[f"std_normal_{v}"]
+			for k, v in copula_model['full_formula'].items():
+				copula_var_dict[k] = record_dict[k]
+
+			record_dict['cop_log_prob'] = numpyro.factor(
+				'cop_log_prob',
+				copula_model['class'](**copula_var_dict)
+			)
 
 
 	def _map_probability_distributions(self, prob_distribution: str) -> numpyro.distributions:
