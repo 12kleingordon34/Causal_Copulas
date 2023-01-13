@@ -77,26 +77,35 @@ class Copula_Model:
 		)
 		
 		mcmc_model.run(
-			key=jax.random.PRNGKey(seed)
+			rng_key=jax.random.PRNGKey(seed)
 		)
 		## TO DO: Figure out how to return the data in a useful format.
-		pass
+		return mcmc_model.get_samples()
 	
 
 	def _simulated_data_model(self) -> None:
 		record_dict = {}
 		for test_idx, test_row in self.parsed_model.items():
-			test_formula = self._align_transformation(test_row['formula']['loc'], test_row['params']['loc']) 
+			lin_models_dict = {}
+			for param in test_row['formula'].keys():
+				lin_models_dict[param] = self._align_transformation(
+					test_row['formula'][param], test_row['params'][param]
+				)
+
+			lin_models_evaluated = {}
+			for k, v in lin_models_dict.items():
+				lin_models_evaluated[k] = eval(v)
+
 			#### ITS NOT DOING ANYTHING WITH THE SCALE PARAMETER --- NEED TO FIX
 			if test_row['link']:
 				record_dict[test_idx] = numpyro.sample(
 					test_idx,
-					test_row['dist'](test_row['link'](eval(test_formula)))
+					test_row['dist'](test_row['link'](**lin_models_evaluated))
 				)
 			else:
 				record_dict[test_idx] = numpyro.sample(
 					test_idx,
-					test_row['dist']((eval(test_formula)))
+					test_row['dist'](**lin_models_evaluated)
 				)
 
 
@@ -124,12 +133,23 @@ class Copula_Model:
 		print('WARNING: CHECK PASSES AUTOMATICALLY. FULL SOLUTION ADDED TBC')
 		return True
 
-	def _align_transformation(self, formula, params) -> str:
+	def _align_transformation(self, formula: str, params: list[float]) -> str:
 		"""
 		Convert input formula and parameters into numpyro-readable format
 		for data simulation
 		"""
-		pass
+		formula_factors = patsy.ModelDesc.from_formula(formula)
+		rhs_terms = formula_factors.rhs_termlist
+		params_coeff = list(params.values())
+
+		assert len(rhs_terms) == len(params)
+
+		if len(params_coeff) == 1:
+			return str(params_coeff[0])
+		if len(params_coeff) >= 2:
+			list_of_terms = ([f"{params_coeff[0]}"] +
+				[f'{i} * {j.name()}' for i, j in zip(params_coeff[1:], rhs_terms[1:])])
+			return  " + ".join(list_of_terms)
 
 	def _regex_variable_adjustment(self, formula: str) -> str:
 		"""
@@ -163,7 +183,7 @@ class Copula_Model:
 
 		regexed_term = re.findall(self.functional_regex, term_name)
 		if not regexed_term:
-			return term_name
+			return f"record_dict['{term_name}']"
 
 		key_formula = regexed_term[0]
 		orig_vars = re.findall(r"[\w,\_]", key_formula)
