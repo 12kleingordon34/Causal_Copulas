@@ -11,4 +11,6 @@ def bivariate_gaussian_copula_lpdf(u, v, rho):
         ) / (2 * (1 - rho_2))
     )
 	
-
+_COPULA_TAGS = {
+	'bivariate_gaussian_copula': bivariate_gaussian_copula_lpdf
+}

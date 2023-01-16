@@ -1,3 +1,4 @@
+import inspect
 import random
 import re
 from typing import Literal
@@ -5,36 +6,28 @@ from typing import Literal
 import jax
 import jax.numpy as jnp
 import numpyro
+from numpyro.distributions import *
 import patsy
 
-from frugalCopyla import copula_functions
+from frugalCopyla.copula_functions import _COPULA_TAGS
 
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 
-COPULA_TAGS = {
-	'bivariate_gaussian_copula': copula_functions.bivariate_gaussian_copula_lpdf
-}
+###### REMEMBER THAT THE INTERCEPT IS ALWAYS PARSED FIRST WITH PATSY
+###### REMEMBER THAT THE INTERCEPT IS ALWAYS PARSED FIRST WITH PATSY
+###### REMEMBER THAT THE INTERCEPT IS ALWAYS PARSED FIRST WITH PATSY
+###### REMEMBER THAT THE INTERCEPT IS ALWAYS PARSED FIRST WITH PATSY
 _DISTRIBUTION_TYPES = ['discrete', 'continuous', 'mixed']
-# {
-# 	'copula': {
-# 		'class': 'bivariate_gaussian_copula',
-# 		'variables': ['Z', 'Y'],
-# 		'correlation_formula': {'rho': 'cop ~ Z'},
-# 		'correlation_params': {'rho': [0.2, 0.5]},
-# 		'link': 'jax.nn.sigmoid'
-# 	}
-# }
+
+
 class Copula_Model:
 	def __init__(self, model_dict: dict) -> None:
-		self.functional_regex = r"[\.,\w,\(]+\(([a-zA-Z, , _,-,*,//]+)[\)]+$"
-
 		self.parsed_model = self._process_input_model(model_dict)
 		assert self._is_model_ordered_and_acyclic(self.parsed_model)
 
-		pass
 
 	def _process_input_model(self, model_dict: dict) -> dict:
 		"""
@@ -48,12 +41,17 @@ class Copula_Model:
 
 		copula_settings = model_dict.pop('copula', None)
 		for var, spec in model_dict.items():
-			parsed_model[var] = {'dist': None, 'formula': {}, 'params': {}, 'link': None}
+			parsed_model[var] = {'dist': model_dict[var]['dist'], 'formula': {}, 'params': {}, 'link': {}}
 
 			# Currently use numpyro.distributions in input, but can change
-			parsed_model[var]['dist'] = self._map_probability_distributions(model_dict[var]['dist'])
-
+			assert self._is_dist_from_numpyro(model_dict[var]['dist'])
 			distribution_params = parsed_model[var]['dist'].arg_constraints.keys()
+			
+			if model_dict[var].get('link', None):
+				for param in model_dict[var]['link'].keys():
+					assert self._is_link_from_jax(model_dict[var]['link'][param])
+					parsed_model[var]['link'][param] = model_dict[var]['link'][param]
+
 			assert model_dict[var]['formula'].keys() == distribution_params
 			assert model_dict[var]['params'].keys() == distribution_params
 
@@ -73,8 +71,6 @@ class Copula_Model:
 					parsed_model[var]['params'][param]
 				)
 
-			parsed_model[var]['link'] = self._map_link_functions(model_dict[var]['link'])
-
 		if not copula_settings:
 			print('INFO: No copula specified.')
 			return parsed_model
@@ -83,16 +79,18 @@ class Copula_Model:
 			'class': None,
 			'vars': [],
 			'corr_full_formula': {},
-			'link': None
+			'link': {}
 		}
-		parsed_model['copula']['class'] = COPULA_TAGS[copula_settings['class']]
+		parsed_model['copula']['class'] = _COPULA_TAGS[copula_settings['class']]
 		parsed_model['copula']['vars'] = copula_settings['vars'].copy()
 		for param in copula_settings['formula'].keys():
-			parsed_model['copula']['corr_full_formula'] = self._align_transformation(
+			copula_settings['formula'][param] = self._regex_variable_adjustment(copula_settings['formula'][param])
+			parsed_model['copula']['corr_full_formula'][param] = self._align_transformation(
 				copula_settings['formula'][param],
 				copula_settings['params'][param]
 			)
-		parsed_model['copula']['link'] = copula_settings['link']
+			assert self._is_link_from_jax(copula_settings['link'][param])
+			parsed_model['copula']['link'][param] = copula_settings['link'][param]
 
 	
 		return parsed_model
@@ -127,7 +125,15 @@ class Copula_Model:
 		)
 		## TO DO: Figure out how to return the data in a useful format.
 		return mcmc_model.get_samples()
-	
+
+	def inference(self) -> dict:
+		"""
+		Performs inference on the parameters given a specified model
+		and input data.
+		
+		TBC.
+		"""
+		pass
 
 	def _simulated_data_model(self) -> None:
 		prob_model = self.parsed_model.copy()
@@ -138,13 +144,16 @@ class Copula_Model:
 
 			lin_models_evaluated = {}
 			for k, v in lin_models_str.items():
-				lin_models_evaluated[k] = eval(v)
+				if test_row['link']:
+					lin_models_evaluated[k] = test_row['link'][k](eval(v))
+				else:
+					lin_models_evaluated[k] = eval(v)
 
 			#### ITS NOT DOING ANYTHING WITH THE SCALE PARAMETER --- NEED TO FIX
 			if test_row['link']:
 				record_dict[test_idx] = numpyro.sample(
 					test_idx,
-					test_row['dist'](test_row['link'](**lin_models_evaluated))
+					test_row['dist'](**lin_models_evaluated)
 				)
 			else:
 				record_dict[test_idx] = numpyro.sample(
@@ -153,30 +162,38 @@ class Copula_Model:
 				)
 		
 		 	# Generate quantiles
-			if copula_model and test_idx in copula_model['vars'].keys():
+			if copula_model and test_idx in copula_model['vars'].values():
 				record_dict[f"q_{test_idx}"] = numpyro.deterministic(
 					f"q_{test_idx}",
-					prob_model[test_idx](**lin_models_evaluated).cdf(record_dict[test_idx])
+					prob_model[test_idx]['dist'](**lin_models_evaluated).cdf(record_dict[test_idx])
 				)
 				record_dict[f"std_normal_{test_idx}"] = numpyro.deterministic(
-					"std_normal_{test_idx}",
-					jax.distributions(0, 1).icdf(record_dict[f"q_{test_idx}"])
+					f"std_normal_{test_idx}",
+					numpyro.distributions.Normal(0, 1).icdf(record_dict[f"q_{test_idx}"])
 				)
 			
 		if copula_model:
 			for idx, formula in copula_model['corr_full_formula'].items():
-				record_dict[idx] = numpyro.deterministic(
-					idx,
-					###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
-					copula_model['link'](eval(copula_model[idx]['full_formula']))
-				)
+				if copula_model['link'][idx]:
+					record_dict[idx] = numpyro.deterministic(
+						idx,
+						###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+						copula_model['link'][idx](eval(copula_model['corr_full_formula'][idx]))
+					)
+				else:
+					record_dict[idx] = numpyro.deterministic(
+						idx,
+						###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+						eval(copula_model['corr_full_formula'][idx])
+					)
+
 			
 
 			#### HOW TO MAP THE VARS TO THE DICT
 			copula_var_dict = {}
-			for k, v in copula_model['vars']:
+			for k, v in copula_model['vars'].items():
 				copula_var_dict[k] = record_dict[f"std_normal_{v}"]
-			for k, v in copula_model['full_formula'].items():
+			for k, v in copula_model['corr_full_formula'].items():
 				copula_var_dict[k] = record_dict[k]
 
 			record_dict['cop_log_prob'] = numpyro.factor(
@@ -184,23 +201,41 @@ class Copula_Model:
 				copula_model['class'](**copula_var_dict)
 			)
 
-
-	def _map_probability_distributions(self, prob_distribution: str) -> numpyro.distributions:
+	def _is_dist_from_numpyro(self, prob_distribution: numpyro.distributions) -> bool:
 		"""
-		Map the distribution names in the input model dict
-		to their corresponding distribution in Numpyro.
+		Check that the user provided probability distribution
+		is sourced from numpyro
 		"""
-		return eval(prob_distribution)
+		dist_module_source = inspect.getmodule(prob_distribution)
+		valid_source_modules = [numpyro.distributions.discrete, numpyro.distributions.continuous]
 
-	def _map_link_functions(self, link_function: str) -> None:
+		if dist_module_source in valid_source_modules:
+			return True
+		else:
+			return False
+
+	def _is_link_from_jax(self, link_function) -> bool:
 		"""
 		Map the link function in the input model dict
 		to its corresponding link function in Numpyro.
+
+		The package requires users to pick their link functions
+		from jax.numpy. The full list of options can be found from
+
+		https://jax.readthedocs.io/en/latest/jax.numpy.html
 		"""
-		if not link_function:
-			return None
+		link_func_module_source_name = inspect.getmodule(link_function).__name__
+		valid_source_modules = [
+			'jax._src.nn.functions',
+			'jax._src.numpy.ufuncs',
+			'jax',
+			'jax.nn',
+			'jax.numpy'
+		]
+		if link_func_module_source_name in valid_source_modules:
+			return True
 		else:
-			return eval(link_function)
+			return False
 
 	def _is_model_ordered_and_acyclic(self, parsed_model: dict) -> bool:
 		"""
@@ -253,11 +288,15 @@ class Copula_Model:
 	def __regex_variable_adjustment(self, formula_term: patsy.Term) -> str:
 		"""
 		"""
+		# For each linear argument, extract core arguments from within 
+		# functions (if functions exist)
+		functional_regex = r"[\.,\w,\(]+\(([a-zA-Z, , _,-,*,//]+)[\)]+$"
+
 		term_name = formula_term.name()
 		if term_name == 'Intercept':
 			return '1'
 
-		regexed_term = re.findall(self.functional_regex, term_name)
+		regexed_term = re.findall(functional_regex, term_name)
 		if not regexed_term:
 			return f"record_dict['{term_name}']"
 
