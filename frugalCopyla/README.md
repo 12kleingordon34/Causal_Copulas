@@ -45,5 +45,5 @@ input_dict = {
     'copula': {'class': 'bivariate_gaussian_copula', 'vars': {'u': 'Z', 'v': 'Y'}, 'formula': {'rho': 'c ~ Z'}, 'params': {'rho': {'a': 1., 'b': 0.}}, 'link': {'rho': jax.nn.sigmoid}}
 }
 ```
-which allows one to simulate from the following causal model: $$Z \sim \mathcal{N}(0, 1) \newline X ~ \text{Exponential}(\exp(Z + 1) \newline Y | \text{do}(X) \sim \mathcal{N}(X - 0.5, 1)$$ with a bivariate Gaussian copula between $Z$ and $Y$ parameterised by a fixed covariance term $\rho_{ZY} = logit(1)$
+which allows one to simulate from the following causal model: $$Z \sim \mathcal{N}(0, 1) \\ X ~ \text{Exponential}(\exp(Z + 1) \\ Y | \text{do}(X) \sim \mathcal{N}(X - 0.5, 1)$$ with a bivariate Gaussian copula between $Z$ and $Y$ parameterised by a fixed covariance term $\rho_{ZY} = logit(1)$
  
