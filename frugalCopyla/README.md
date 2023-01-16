@@ -22,7 +22,7 @@ See example of use [here]('./examples/basic_demo.ipynb').
 The input should be a dictionary whose keys label the variables in your model. For each of these, specify in a sub-dictionary:
 
 * `dist`: The distribution the variable is drawn from. These must be selected from `numpyro.distributions`
-* `formula`: For each parameter in the chosen distribution, specify its linear model **only using variables defined earlier in the dictionary**. The names of the correct parameters can be found by either [searching the `numpyro` documentation]() or looking at the `arg_constraints` of the distribution by running (using the Normal as an example) : 
+* `formula`: For each parameter in the chosen distribution, specify its linear model **only using variables defined earlier in the dictionary**. The names of the correct parameters can be found by either [searching the `numpyro` documentation](https://num.pyro.ai/en/stable/distributions.html) or looking at the `arg_constraints` of the distribution by running (using the Normal as an example) : 
 ```
 > numpyro.distributions.Normal.arg_constraints 
 
