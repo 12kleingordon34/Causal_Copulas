@@ -10,7 +10,8 @@ setup(
         'jax==0.3.24',
         'jaxlib==0.3.24',
         'numpy==1.23.4',
-        'numpyro==0.10.1'
+        'numpyro==0.10.1',
+        'patsy==0.5.3'
     ],
     packages=find_packages()
 )
