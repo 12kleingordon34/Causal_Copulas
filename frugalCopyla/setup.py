@@ -13,5 +13,8 @@ setup(
         'numpyro==0.10.1',
         'patsy==0.5.3'
     ],
-    packages=find_packages()
+    packages=find_packages(
+        where='frugalCopyla',
+        include=['model', 'copula_functions']
+    )
 )
