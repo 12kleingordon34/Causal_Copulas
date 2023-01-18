@@ -144,7 +144,7 @@ class Copula_Model:
 
 			lin_models_evaluated = {}
 			for k, v in lin_models_str.items():
-				if test_row['link']:
+				if test_row['link'].get(k, None):
 					lin_models_evaluated[k] = test_row['link'][k](eval(v))
 				else:
 					lin_models_evaluated[k] = eval(v)
@@ -191,14 +191,15 @@ class Copula_Model:
 
 			#### HOW TO MAP THE VARS TO THE DICT
 			copula_var_dict = {}
+			copula_rho_dict = {}
 			for k, v in copula_model['vars'].items():
 				copula_var_dict[k] = record_dict[f"std_normal_{v}"]
 			for k, v in copula_model['corr_full_formula'].items():
-				copula_var_dict[k] = record_dict[k]
+				copula_rho_dict[k] = record_dict[k]
 
 			record_dict['cop_log_prob'] = numpyro.factor(
 				'cop_log_prob',
-				copula_model['class'](**copula_var_dict)
+				copula_model['class'](copula_var_dict, copula_rho_dict)
 			)
 
 	def _is_dist_from_numpyro(self, prob_distribution: numpyro.distributions) -> bool:
@@ -224,6 +225,8 @@ class Copula_Model:
 
 		https://jax.readthedocs.io/en/latest/jax.numpy.html
 		"""
+		if not link_function:
+			return True
 		link_func_module_source_name = inspect.getmodule(link_function).__name__
 		valid_source_modules = [
 			'jax._src.nn.functions',
@@ -260,7 +263,7 @@ class Copula_Model:
 		if len(params_coeff) >= 2:
 			list_of_terms = ([f"{params_coeff[0]}"] +
 				[f'{i} * {j.name()}' for i, j in zip(params_coeff[1:], rhs_terms[1:])])
-			return  " + ".join(list_of_terms)
+			return  " + ".join(list_of_terms).replace(':', '*')
 
 	def _regex_variable_adjustment(self, formula: str) -> str:
 		"""
@@ -275,24 +278,33 @@ class Copula_Model:
 		rhs_terms = parsed_terms.rhs_termlist
 		enhanced_rhs_term_list = []
 		for term in rhs_terms:
-			enhanced_rhs_term_list.append(
-				self.__regex_variable_adjustment(term)
-			)
+			if len(term.factors) <= 1:
+				enhanced_rhs_term_list.append(
+					self.__regex_variable_adjustment(term.name())
+				)
+			else:
+				product_term_list = []
+				for factor in term.factors:
+					product_term_list.append(
+						self.__regex_variable_adjustment(factor.name())
+					)
+				enhanced_rhs_term_list.append(
+					' * '.join(product_term_list)
+				)
 		enhanced_rhs_term_str = ' + '.join(enhanced_rhs_term_list)
 		
 		enhanced_formula = ' ~ '.join([
 			lhs_term_str, enhanced_rhs_term_str
-		])
+		]).replace(':', '*')
 		return enhanced_formula
 
-	def __regex_variable_adjustment(self, formula_term: patsy.Term) -> str:
+	def __regex_variable_adjustment(self, term_name: str) -> str:
 		"""
 		"""
 		# For each linear argument, extract core arguments from within 
 		# functions (if functions exist)
-		functional_regex = r"[\.,\w,\(]+\(([a-zA-Z, , _,-,*,//]+)[\)]+$"
+		functional_regex = r"[\.,\w,\(]+\(([a-zA-Z, , :_,-,*,//]+)[\)]+$"
 
-		term_name = formula_term.name()
 		if term_name == 'Intercept':
 			return '1'
 

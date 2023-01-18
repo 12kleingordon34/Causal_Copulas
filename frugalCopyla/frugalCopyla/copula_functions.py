@@ -1,5 +1,5 @@
-import jax.scipy.stats as jax_stats
 import jax.numpy as jnp
+import jax.scipy.stats as jax_stats
 
 
 def reshape_matrix(n_vars: int, rhos: list[float], is_cholesky=False) -> jnp.array:
@@ -33,15 +33,15 @@ def bivariate_gaussian_copula_lpdf(u, v, rho) -> float:
 
 def multivar_gaussian_copula_lpdf(vars: dict, rhos: dict) -> float:
     rvs = jnp.array(list(vars.values()))
-    mean = jnp.zeros(len(rvs_list))
-    cov = reshape_matrix(len(rvs_list), list(rhos.values()), is_cholesky=True)
+    mean = jnp.zeros(len(rvs))
+    cov = reshape_matrix(len(rvs), list(rhos.values()), is_cholesky=True)
     return jax_stats.multivariate_normal.logpdf(rvs, mean, cov)	
 
 
 def chol_multivar_gaussian_copula_lpdf(vars: dict, rhos: dict) -> float:
     rvs = jnp.array(list(vars.values()))
-    mean = jnp.zeros(len(rvs_list))
-    chol_cov = reshape_matrix(len(rvs_list), list(rhos.values()), is_cholesky=False)
+    mean = jnp.zeros(len(rvs))
+    chol_cov = reshape_matrix(len(rvs), list(rhos.values()), is_cholesky=False)
     cov = jnp.matmul(chol_cov, chol_cov.T)
     return jax_stats.multivariate_normal.logpdf(rvs, mean, cov)	
 
