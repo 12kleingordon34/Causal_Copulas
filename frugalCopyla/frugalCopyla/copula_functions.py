@@ -2,7 +2,7 @@ import jax.numpy as jnp
 import jax.scipy.stats as jax_stats
 
 
-def reshape_matrix(n_vars: int, rhos: list[float], is_cholesky=False) -> jnp.array:
+def __reshape_matrix(n_vars: int, rhos: list[float], is_cholesky=False) -> jnp.array:
     assert int((n_vars ** 2 - n_vars) / 2) == len(rhos)
     position_idx = 0
     for n in reversed(range(1, n_vars+1)):
@@ -34,19 +34,13 @@ def bivariate_gaussian_copula_lpdf(u, v, rho) -> float:
 def multivar_gaussian_copula_lpdf(vars: dict, rhos: dict) -> float:
     rvs = jnp.array(list(vars.values()))
     mean = jnp.zeros(len(rvs))
-    cov = reshape_matrix(len(rvs), list(rhos.values()), is_cholesky=True)
+    cov = __reshape_matrix(len(rvs), list(rhos.values()), is_cholesky=True)
     return jax_stats.multivariate_normal.logpdf(rvs, mean, cov)	
 
 
 def chol_multivar_gaussian_copula_lpdf(vars: dict, rhos: dict) -> float:
     rvs = jnp.array(list(vars.values()))
     mean = jnp.zeros(len(rvs))
-    chol_cov = reshape_matrix(len(rvs), list(rhos.values()), is_cholesky=False)
+    chol_cov = __reshape_matrix(len(rvs), list(rhos.values()), is_cholesky=False)
     cov = jnp.matmul(chol_cov, chol_cov.T)
     return jax_stats.multivariate_normal.logpdf(rvs, mean, cov)	
-
-
-_COPULA_TAGS = {
-	'bivariate_gaussian_copula': bivariate_gaussian_copula_lpdf,
-    'multivariate_gaussian_copula': multivar_gaussian_copula_lpdf
-}

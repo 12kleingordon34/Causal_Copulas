@@ -9,8 +9,6 @@ import numpyro
 from numpyro.distributions import *
 import patsy
 
-from frugalCopyla.copula_functions import _COPULA_TAGS
-
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
@@ -81,7 +79,7 @@ class Copula_Model:
 			'corr_full_formula': {},
 			'link': {}
 		}
-		parsed_model['copula']['class'] = _COPULA_TAGS[copula_settings['class']]
+		parsed_model['copula']['class'] = copula_settings['class']
 		parsed_model['copula']['vars'] = copula_settings['vars'].copy()
 		for param in copula_settings['formula'].keys():
 			copula_settings['formula'][param] = self._regex_variable_adjustment(copula_settings['formula'][param])

@@ -39,12 +39,27 @@ will wrap the linear predictor in an exponential function such that the probabil
 
 For example, consider the following input:
 ```
+import numpyro.distributions as dist
+import jax
+import jax.numpy as jnp
+
+import frugalCopyla
+
 input_dict = {
-    'Z': {'dist': dist.Normal, 'formula': {'loc': 'Z ~ 1', 'scale': 'Z ~ 1'}, 'params': {'loc': {'z_0': 0.}, 'scale': {'z_0': 1}}, 'link': None},
-    'X': {'dist': dist.Exponential, 'formula': {'rate': 'X ~ Z'}, 'params': {'rate': {'x_0': 1., 'x_1': 1.}}, 'link': {'rate': jnp.exp}},
-    'Y': {'dist': dist.Normal, 'formula': {'loc': 'Y ~ X', 'scale': 'Y ~ 1'}, 'params': {'loc': {'y_0': -0.5, 'y_1': 1.}, 'scale': {'phi': 1.}}, 'link': None},
-    'copula': {'class': 'multivariate_gaussian_copula', 'vars': {'u': 'Z', 'v': 'Y'}, 'formula': {'rho': 'c ~ Z'}, 'params': {'rho': {'a': 1., 'b': 0.}}, 'link': {'rho': jax.nn.sigmoid}}
+    'Z': {'dist': dist.Normal, 'formula': {'loc': 'Z ~ 1', 'scale': 'Z ~ 1'}, 'coeffs': {'loc': [0.], 'scale': [1.]}, 'link': None},
+    'X': {'dist': dist.Exponential, 'formula': {'rate': 'X ~ Z'}, 'coeffs': {'rate': [1., 1.]}, 'link': {'rate': jnp.exp}},
+    'Y': {'dist': dist.Normal, 'formula': {'loc': 'Y ~ X', 'scale': 'Y ~ 1'}, 'coeffs': {'loc': [-0.5, 1.], 'scale': [1.]}, 'link': None},
+    'copula': {
+        'class': frugalCopyla.copula_functions.multivar_gaussian_copula_lpdf,
+        'vars': {'u': 'Z', 'v': 'Y'},
+        'formula': {'rho': 'c ~ Z'},
+        'coeffs': {'rho': [1., 0.]},
+        'link': {'rho': jax.nn.sigmoid}
+    }
 }
+
+model = frugalCopyla.model.Copula_Model(input_dict)
+data = model.simulate_data(num_warmup=1000, num_samples=1000, joint_status='continuous')
 ```
 which allows one to simulate from the following causal model: $$Z \sim \mathcal{N}(0, 1) \\ X \sim \text{Exponential}(\exp(Z + 1) \\ Y | \text{do}(X) \sim \mathcal{N}(X - 0.5, 1)$$ with a bivariate Gaussian copula between $Z$ and $Y$ parameterised by a fixed covariance term $\rho_{ZY} = logit(1)$
  
