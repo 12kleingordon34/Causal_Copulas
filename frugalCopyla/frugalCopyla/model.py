@@ -33,7 +33,7 @@ class Copula_Model:
 		"""
 		Key steps:
 		* Check distributions are valid
-		* Check params and formula keys are consistent for distribution parameter type
+		* Check coeffs and formula keys are consistent for distribution parameter type
 		* Check formula type
 		* Check link function is valid
 		"""
@@ -41,7 +41,7 @@ class Copula_Model:
 
 		copula_settings = model_dict.pop('copula', None)
 		for var, spec in model_dict.items():
-			parsed_model[var] = {'dist': model_dict[var]['dist'], 'formula': {}, 'params': {}, 'link': {}}
+			parsed_model[var] = {'dist': model_dict[var]['dist'], 'formula': {}, 'coeffs': [], 'link': {}}
 
 			# Currently use numpyro.distributions in input, but can change
 			assert self._is_dist_from_numpyro(model_dict[var]['dist'])
@@ -53,22 +53,22 @@ class Copula_Model:
 					parsed_model[var]['link'][param] = model_dict[var]['link'][param]
 
 			assert model_dict[var]['formula'].keys() == distribution_params
-			assert model_dict[var]['params'].keys() == distribution_params
+			assert len(model_dict[var]['coeffs']) == len(distribution_params)
 
 			# Check correct number of parameters have been provided
-			### TO DO: Fix confusion between `param` and `'params'` entries
+			### TO DO: Fix confusion between `param` and `'coeffs'` entries
 			parsed_model[var]['full_formula'] = dict()
 			for param in distribution_params:
 				parsed_model[var]['formula'][param] = self._regex_variable_adjustment(model_dict[var]['formula'][param])
-				assert len(model_dict[var]['params'][param].keys()) == len(
+				assert len(model_dict[var]['coeffs'][param]) == len(
 					patsy.ModelDesc.from_formula(
 						parsed_model[var]['formula'][param]
 					).rhs_termlist
 				)
-				parsed_model[var]['params'] = model_dict[var]['params'].copy()
+				parsed_model[var]['coeffs'] = model_dict[var]['coeffs'].copy()
 				parsed_model[var]['full_formula'][param] = self._align_transformation(
 					parsed_model[var]['formula'][param],
-					parsed_model[var]['params'][param]
+					parsed_model[var]['coeffs'][param]
 				)
 
 		if not copula_settings:
@@ -87,7 +87,7 @@ class Copula_Model:
 			copula_settings['formula'][param] = self._regex_variable_adjustment(copula_settings['formula'][param])
 			parsed_model['copula']['corr_full_formula'][param] = self._align_transformation(
 				copula_settings['formula'][param],
-				copula_settings['params'][param]
+				copula_settings['coeffs'][param]
 			)
 			assert self._is_link_from_jax(copula_settings['link'][param])
 			parsed_model['copula']['link'][param] = copula_settings['link'][param]
@@ -247,22 +247,21 @@ class Copula_Model:
 		print('WARNING: CHECK PASSES AUTOMATICALLY. FULL SOLUTION ADDED TBC')
 		return True
 
-	def _align_transformation(self, formula: str, params: list[float]) -> str:
+	def _align_transformation(self, formula: str, coeffs: list[float]) -> str:
 		"""
 		Convert input formula and parameters into numpyro-readable format
 		for data simulation
 		"""
 		formula_factors = patsy.ModelDesc.from_formula(formula)
 		rhs_terms = formula_factors.rhs_termlist
-		params_coeff = list(params.values())
 
-		assert len(rhs_terms) == len(params)
+		assert len(rhs_terms) == len(coeffs)
 
-		if len(params_coeff) == 1:
-			return str(params_coeff[0])
-		if len(params_coeff) >= 2:
-			list_of_terms = ([f"{params_coeff[0]}"] +
-				[f'{i} * {j.name()}' for i, j in zip(params_coeff[1:], rhs_terms[1:])])
+		if len(coeffs) == 1:
+			return str(coeffs[0])
+		if len(coeffs) >= 2:
+			list_of_terms = ([f"{coeffs[0]}"] +
+				[f'{i} * {j.name()}' for i, j in zip(coeffs[1:], rhs_terms[1:])])
 			return  " + ".join(list_of_terms).replace(':', '*')
 
 	def _regex_variable_adjustment(self, formula: str) -> str:
