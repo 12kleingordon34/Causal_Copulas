@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='frugalCopyla',
-    version='0.0.1',
+    version='0.0.2',
     description='tbc',
     author='Dan Manela',
     author_email='tbc',
