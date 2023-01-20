@@ -36,6 +36,34 @@ will wrap the linear predictor in an exponential function such that the probabil
     * Under `'formula'`, specify the form of the linear predictor for the parameters passed to the copula. The coefficients for the linear predictor are specified under `'params'`.
     * Similarly to the other inputs, a link function can be chosen to wrap the linear predictor specified in `'formula'` and `'params'`.
 
+#### Viewing Parsed Model
+
+To check whether the model has been parsed correctly, you can check the `parsed_model` property of a `Copula_Model` class:
+```
+...
+>>> cop_mod = Copula_Model(input_dict)
+>>> cop_mod.parsed_model
+
+{'Z': {'dist': numpyro.distributions.continuous.Normal,
+  'formula': {'loc': 'A ~ 1', 'scale': 'A ~ 1'},
+  'coeffs': {'loc': [0.0], 'scale': [1.0]},
+  'link': {},
+  'linear_predictor': {'loc': '0.0', 'scale': '1.0'}},
+ 'X': {'dist': numpyro.distributions.continuous.Normal,
+  'formula': {'loc': "X ~ 1 + record_dict['Z']", 'scale': 'X ~ 1'},
+  'coeffs': {'loc': [0.0, 0.5], 'scale': [1.0]},
+  'link': {},
+  'linear_predictor': {'loc': "0.0 + 0.5 * record_dict['Z']", 'scale': '1.0'}},
+ 'Y': {'dist': numpyro.distributions.continuous.Normal,
+  'formula': {'loc': "Y ~ 1 + record_dict['X']", 'scale': 'Y ~ 1'},
+  'coeffs': {'loc': [0.0, 0.5], 'scale': [0.5]},
+  'link': {'loc': None},
+  'linear_predictor': {'loc': "0.0 + 0.5 * record_dict['X']", 'scale': '0.5'}}}
+```
+Note that the `linear_predictor` field shows the form of the linear predictor for a distribution's parameter (before being passed to the inverse link function).
+
+### Code Example
+
 For example, consider the following input:
 ```
 import numpyro.distributions as dist
