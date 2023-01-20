@@ -55,7 +55,7 @@ class Copula_Model:
 
 			# Check correct number of parameters have been provided
 			### TO DO: Fix confusion between `param` and `'coeffs'` entries
-			parsed_model[var]['full_formula'] = dict()
+			parsed_model[var]['linear_predictor'] = dict()
 			for param in distribution_params:
 				parsed_model[var]['formula'][param] = self._regex_variable_adjustment(model_dict[var]['formula'][param])
 				assert len(model_dict[var]['coeffs'][param]) == len(
@@ -64,7 +64,7 @@ class Copula_Model:
 					).rhs_termlist
 				)
 				parsed_model[var]['coeffs'] = model_dict[var]['coeffs'].copy()
-				parsed_model[var]['full_formula'][param] = self._align_transformation(
+				parsed_model[var]['linear_predictor'][param] = self._align_transformation(
 					parsed_model[var]['formula'][param],
 					parsed_model[var]['coeffs'][param]
 				)
@@ -76,14 +76,14 @@ class Copula_Model:
 		parsed_model['copula'] = {
 			'class': None,
 			'vars': [],
-			'corr_full_formula': {},
+			'corr_linear_predictor': {},
 			'link': {}
 		}
 		parsed_model['copula']['class'] = copula_settings['class']
 		parsed_model['copula']['vars'] = copula_settings['vars'].copy()
 		for param in copula_settings['formula'].keys():
 			copula_settings['formula'][param] = self._regex_variable_adjustment(copula_settings['formula'][param])
-			parsed_model['copula']['corr_full_formula'][param] = self._align_transformation(
+			parsed_model['copula']['corr_linear_predictor'][param] = self._align_transformation(
 				copula_settings['formula'][param],
 				copula_settings['coeffs'][param]
 			)
@@ -138,7 +138,7 @@ class Copula_Model:
 		copula_model = prob_model.pop('copula', None)
 		record_dict = {}
 		for test_idx, test_row in prob_model.items():
-			lin_models_str = test_row['full_formula']
+			lin_models_str = test_row['linear_predictor']
 
 			lin_models_evaluated = {}
 			for k, v in lin_models_str.items():
@@ -160,7 +160,7 @@ class Copula_Model:
 				)
 		
 		 	# Generate quantiles
-			if copula_model and test_idx in copula_model['vars'].values():
+			if copula_model and test_idx in copula_model['vars']:
 				record_dict[f"q_{test_idx}"] = numpyro.deterministic(
 					f"q_{test_idx}",
 					prob_model[test_idx]['dist'](**lin_models_evaluated).cdf(record_dict[test_idx])
@@ -171,18 +171,18 @@ class Copula_Model:
 				)
 			
 		if copula_model:
-			for idx, formula in copula_model['corr_full_formula'].items():
+			for idx, formula in copula_model['corr_linear_predictor'].items():
 				if copula_model['link'][idx]:
 					record_dict[idx] = numpyro.deterministic(
 						idx,
 						###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
-						copula_model['link'][idx](eval(copula_model['corr_full_formula'][idx]))
+						copula_model['link'][idx](eval(copula_model['corr_linear_predictor'][idx]))
 					)
 				else:
 					record_dict[idx] = numpyro.deterministic(
 						idx,
 						###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
-						eval(copula_model['corr_full_formula'][idx])
+						eval(copula_model['corr_linear_predictor'][idx])
 					)
 
 			
@@ -190,9 +190,9 @@ class Copula_Model:
 			#### HOW TO MAP THE VARS TO THE DICT
 			copula_var_dict = {}
 			copula_rho_dict = {}
-			for k, v in copula_model['vars'].items():
-				copula_var_dict[k] = record_dict[f"std_normal_{v}"]
-			for k, v in copula_model['corr_full_formula'].items():
+			for k in copula_model['vars']:
+				copula_var_dict[k] = record_dict[f"std_normal_{k}"]
+			for k, v in copula_model['corr_linear_predictor'].items():
 				copula_rho_dict[k] = record_dict[k]
 
 			record_dict['cop_log_prob'] = numpyro.factor(
