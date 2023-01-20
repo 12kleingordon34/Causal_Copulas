@@ -20,17 +20,6 @@ def __reshape_matrix(n_vars: int, rhos: list[float], is_cholesky=False) -> jnp.a
     return corr
 
 
-def bivariate_gaussian_copula_lpdf(u, v, rho) -> float:
-    u_2 = jnp.square(u)
-    v_2 = jnp.square(v)
-    rho_2 = jnp.square(rho)
-    return (
-        -0.5 * (1 - rho_2) - (
-            rho_2 * (u_2 + v_2) - 2 * rho * u * v
-        ) / (2 * (1 - rho_2))
-    )
-
-
 def multivar_gaussian_copula_lpdf(vars: dict, rhos: dict) -> float:
     rvs = jnp.array(list(vars.values()))
     mean = jnp.zeros(len(rvs))
