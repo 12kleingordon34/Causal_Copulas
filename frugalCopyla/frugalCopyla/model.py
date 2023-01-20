@@ -9,7 +9,7 @@ import numpyro
 from numpyro.distributions import *
 import patsy
 
-###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+2##### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
@@ -231,7 +231,10 @@ class Copula_Model:
 			'jax._src.numpy.ufuncs',
 			'jax',
 			'jax.nn',
-			'jax.numpy'
+			'jax.numpy',
+			'jax.scipy',
+			'jax._src.scipy.special',
+			'jax._src.scipy'
 		]
 		if link_func_module_source_name in valid_source_modules:
 			return True
