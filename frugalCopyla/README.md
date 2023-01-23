@@ -6,6 +6,7 @@ Clear and efficient sampling from customisable frugal causal models.
 Clone the repo and run
 ```
 pip install -e .
+pip install -r requirements.txt
 ```
 to install the package and its dependencies.
 
