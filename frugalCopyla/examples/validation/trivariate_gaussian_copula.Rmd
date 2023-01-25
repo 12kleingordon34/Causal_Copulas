@@ -1,0 +1,119 @@
+---
+title: "Exploration of Highly Correlated Simulated Data"
+author: "Dan Manela"
+date: "24/11/2022"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparison of Methods}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = TRUE,
+  comment = "#>",
+  cache = FALSE,
+  fig.width=7, 
+  fig.height=7
+)
+# knitr::knit_theme$set("earendel")
+```
+
+As always, we begin by loading the package.
+
+```{r load, include=TRUE, message=FALSE}
+library(causl)
+library(ggplot2)
+library(purrr)
+library(rjson)
+library(survey)
+library(ivreg)
+library(tidyverse)
+```
+
+## Context
+
+In this example we work with the following model:
+$$Z~\sim~\mathcal{N}(0, 1) \\ X~|~Z~\sim~\mathcal{N}( \rho_{XZ} Z,~1 - \rho_{XZ}^{2}) \\ Y~|~\text{do}(X) \sim \mathcal{N}(X - 0.5,~1)$$
+with a gaussian copula correlation of $\rho_{YZ}=\text{expit}(1)$.
+
+## Outcome Regression
+
+```{r}
+data <- list()
+for (path in list.files('validation_datasets/multivar_gaussian/', full.names=TRUE)) {
+  print('================================================')
+  print(paste0('For dataset: ', path))
+  print('================================================')  
+  print('')
+  
+  cop_data <- suppressMessages(read_csv(path))
+  or_rho <- suppressMessages(lm(Y ~ X + Z, data=cop_data))
+
+  results <- as_tibble(summary(or_rho)$coef) %>%
+    mutate(true_coefs=c(-0.5, 1, 0)) %>%
+    mutate(
+      is_true_coef_in_estimate_range=if_else(
+        ((`Estimate` + 2 * `Std. Error`) > true_coefs) && ((`Estimate` - 2 * `Std. Error`) < true_coefs)
+      , TRUE, FALSE)
+    ) %>%
+    dplyr::select(-`t value`, `Pr(>|t|)`)
+  print(results)
+}
+```
+
+## IPW
+
+```{r}
+data <- list()
+paths <- list.files('validation_datasets/multivar_gaussian/', full.names=TRUE)
+rhos <- c(0.2, 0.4, 0.5, 0.7)
+
+for (i in 1:length(paths)) {
+  path <- paths[i]
+  rho <- rhos[i]
+  print('================================================')
+  print(paste0('For dataset: ', path))
+  print('================================================')  
+  print('')
+  cop_data <- suppressMessages(read_csv(path))
+  
+  mod_num <- lm(X ~ 1, data=cop_data)
+  cop_data <- cop_data %>% mutate(
+    num=dnorm(
+      x=cop_data$X, 
+      mean=fitted.values(mod_num),
+      sd=summary(mod_num)$sigma
+    )
+  )
+  mod_den <- lm(X ~ Z, data=cop_data)
+  cop_data <- cop_data %>% mutate(
+    den=dnorm(
+      x=cop_data$X,
+      mean=fitted.values(mod_den),
+      sd=summary(mod_den)$sigma
+    )
+  )
+  cop_data <- cop_data %>% mutate(wt=num/den)
+
+  glm_rho <- svyglm(
+    Y ~ X, 
+    design = svydesign(id=~1, data=cop_data, weights = ~cop_data$wt)
+    )
+
+  results <- as_tibble(summary(glm_rho)$coef) %>%
+    mutate(true_coefs=c(-0.5, rho)) %>%
+    mutate(
+      is_true_coef_in_estimate_range=if_else(
+        ((`Estimate` + 2 * `Std. Error`) > true_coefs) && ((`Estimate` - 2 * `Std. Error`) < true_coefs)
+      , TRUE, FALSE)
+    ) %>%
+    dplyr::select(-`t value`, `Pr(>|t|)`)
+  print(results)
+}
+```
