@@ -46,6 +46,8 @@ with a gaussian copula correlation of $\rho_{YZ}=\text{expit}(1)$.
 
 ```{r}
 data <- list()
+rhos <- c(0.2, 0.4, 0.5, 0.7)
+i <- 1
 for (path in list.files('validation_datasets/multivar_gaussian/', full.names=TRUE)) {
   print('================================================')
   print(paste0('For dataset: ', path))
@@ -56,14 +58,17 @@ for (path in list.files('validation_datasets/multivar_gaussian/', full.names=TRU
   or_rho <- suppressMessages(lm(Y ~ X + Z, data=cop_data))
 
   results <- as_tibble(summary(or_rho)$coef) %>%
-    mutate(true_coefs=c(-0.5, 1, 0)) %>%
+    mutate(true_coefs=c(-0.5, rhos[i], 10000)) %>%
+    mutate(ub=Estimate + 2 * `Std. Error`) %>%
+    mutate(lb=Estimate - 2 * `Std. Error`) %>%
     mutate(
       is_true_coef_in_estimate_range=if_else(
-        ((`Estimate` + 2 * `Std. Error`) > true_coefs) && ((`Estimate` - 2 * `Std. Error`) < true_coefs)
+        (ub> true_coefs) & (lb < true_coefs)
       , TRUE, FALSE)
     ) %>%
     dplyr::select(-`t value`, `Pr(>|t|)`)
   print(results)
+  i <- i + 1
 }
 ```
 
@@ -110,7 +115,7 @@ for (i in 1:length(paths)) {
     mutate(true_coefs=c(-0.5, rho)) %>%
     mutate(
       is_true_coef_in_estimate_range=if_else(
-        ((`Estimate` + 2 * `Std. Error`) > true_coefs) && ((`Estimate` - 2 * `Std. Error`) < true_coefs)
+        ((`Estimate` + 2 * `Std. Error`) > true_coefs) & ((`Estimate` - 2 * `Std. Error`) < true_coefs)
       , TRUE, FALSE)
     ) %>%
     dplyr::select(-`t value`, `Pr(>|t|)`)
