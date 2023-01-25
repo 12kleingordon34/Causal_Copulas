@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Dan Manela" />
+
+
+<title>Comparison Against Didelez Example</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+<script>$(document).ready(function(){
+    if (typeof $('[data-toggle="tooltip"]').tooltip === 'function') {
+        $('[data-toggle="tooltip"]').tooltip();
+    }
+    if ($('[data-toggle="popover"]').popover === 'function') {
+        $('[data-toggle="popover"]').popover();
+    }
+});
+</script>
+<style type="text/css">
+.lightable-minimal {
+border-collapse: separate;
+border-spacing: 16px 1px;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-minimal td {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal th {
+margin-left: 5px;
+margin-right: 5px;
+}
+.lightable-minimal thead tr:last-child th {
+border-bottom: 2px solid #00000050;
+empty-cells: hide;
+}
+.lightable-minimal tbody tr:first-child td {
+padding-top: 0.5em;
+}
+.lightable-minimal.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-minimal.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic {
+border-top: 0.16em solid #111111;
+border-bottom: 0.16em solid #111111;
+width: 100%;
+margin-bottom: 10px;
+margin: 10px 5px;
+}
+.lightable-classic tfoot tr td {
+border: 0;
+}
+.lightable-classic tfoot tr:first-child td {
+border-top: 0.14em solid #111111;
+}
+.lightable-classic caption {
+color: #222222;
+}
+.lightable-classic td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic thead tr:last-child th {
+border-bottom: 0.10em solid #111111;
+}
+.lightable-classic.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-classic-2 {
+border-top: 3px double #111111;
+border-bottom: 3px double #111111;
+width: 100%;
+margin-bottom: 10px;
+}
+.lightable-classic-2 tfoot tr td {
+border: 0;
+}
+.lightable-classic-2 tfoot tr:first-child td {
+border-top: 3px double #111111;
+}
+.lightable-classic-2 caption {
+color: #222222;
+}
+.lightable-classic-2 td {
+padding-left: 5px;
+padding-right: 5px;
+color: #222222;
+}
+.lightable-classic-2 th {
+padding-left: 5px;
+padding-right: 5px;
+font-weight: normal;
+color: #222222;
+}
+.lightable-classic-2 tbody tr:last-child td {
+border-bottom: 3px double #111111;
+}
+.lightable-classic-2 thead tr:last-child th {
+border-bottom: 1px solid #111111;
+}
+.lightable-classic-2.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-classic-2.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #EEE;
+border-collapse: collapse;
+margin-bottom: 10px;
+}
+.lightable-material tfoot tr td {
+border: 0;
+}
+.lightable-material tfoot tr:first-child td {
+border-top: 1px solid #EEE;
+}
+.lightable-material th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+}
+.lightable-material td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+border-top: 1px solid #eeeeee;
+}
+.lightable-material.lightable-hover tbody tr:hover {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody tr:nth-child(even) {
+background-color: #f5f5f5;
+}
+.lightable-material.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #ddd;
+}
+.lightable-material-dark {
+min-width: 100%;
+white-space: nowrap;
+table-layout: fixed;
+font-family: Roboto, sans-serif;
+border: 1px solid #FFFFFF12;
+border-collapse: collapse;
+margin-bottom: 10px;
+background-color: #363640;
+}
+.lightable-material-dark tfoot tr td {
+border: 0;
+}
+.lightable-material-dark tfoot tr:first-child td {
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark th {
+height: 56px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF60;
+}
+.lightable-material-dark td {
+height: 52px;
+padding-left: 16px;
+padding-right: 16px;
+color: #FFFFFF;
+border-top: 1px solid #FFFFFF12;
+}
+.lightable-material-dark.lightable-hover tbody tr:hover {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody tr:nth-child(even) {
+background-color: #FFFFFF12;
+}
+.lightable-material-dark.lightable-striped tbody td {
+border: 0;
+}
+.lightable-material-dark.lightable-striped thead tr:last-child th {
+border-bottom: 1px solid #FFFFFF12;
+}
+.lightable-paper {
+width: 100%;
+margin-bottom: 10px;
+color: #444;
+}
+.lightable-paper tfoot tr td {
+border: 0;
+}
+.lightable-paper tfoot tr:first-child td {
+border-top: 1px solid #00000020;
+}
+.lightable-paper thead tr:last-child th {
+color: #666;
+vertical-align: bottom;
+border-bottom: 1px solid #00000020;
+line-height: 1.15em;
+padding: 10px 5px;
+}
+.lightable-paper td {
+vertical-align: middle;
+border-bottom: 1px solid #00000010;
+line-height: 1.15em;
+padding: 7px 5px;
+}
+.lightable-paper.lightable-hover tbody tr:hover {
+background-color: #F9EEC1;
+}
+.lightable-paper.lightable-striped tbody tr:nth-child(even) {
+background-color: #00000008;
+}
+.lightable-paper.lightable-striped tbody td {
+border: 0;
+}
+</style>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Comparison Against Didelez Example</h1>
+<h4 class="author">Dan Manela</h4>
+<h4 class="date">23/01/2022</h4>
+
+
+
+<p>As always, we begin by loading the package.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(purrr)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(causl)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(survey)</span></code></pre></div>
+<div id="load-data" class="section level2">
+<h2>Load Data</h2>
+<p>We first select the variables in our model, choosing the ones
+mentioned in the running example of Evans and Didelez (2021). In this
+case the model is given by the graph <span class="math inline">\(A_0
+\rightarrow L \rightarrow A_1 \rightarrow Y\)</span> with <span class="math inline">\(A_0 \rightarrow A_1\)</span> and <span class="math inline">\(L \leftrightarrow Y\)</span>.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>didelez_data <span class="ot">&lt;-</span> <span class="fu">suppressMessages</span>(<span class="fu">read_csv</span>(<span class="st">&#39;validation_datasets/didelez_simulation.csv&#39;</span>))</span></code></pre></div>
+<p>We next define the parameters for our model, again following Evans
+and Didelez (2021).</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>pars <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">A0 =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="dv">0</span>),</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">L =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(<span class="fl">0.3</span>,<span class="sc">-</span><span class="fl">0.2</span>), <span class="at">phi=</span><span class="dv">1</span>),</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">A1 =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.3</span>,<span class="fl">0.4</span>,<span class="fl">0.3</span>,<span class="dv">0</span>)), </span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">Y =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.5</span>,<span class="fl">0.2</span>,<span class="fl">0.3</span>,<span class="dv">0</span>), <span class="at">phi=</span><span class="dv">1</span>),</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">cop =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="fl">0.5</span>)))</span></code></pre></div>
+<p>We can check that the distribution actually has the correct form for
+the first three variables (<span class="math inline">\(A_0, L,
+A_1\)</span>):</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">glm</span>(A <span class="sc">~</span> <span class="dv">1</span>, <span class="at">family=</span>binomial, <span class="at">data=</span>didelez_data))<span class="sc">$</span>coef</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z value  Pr(&gt;|z|)</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.04121      0.002    20.6 2.828e-94</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">glm</span>(L <span class="sc">~</span> A, <span class="at">family=</span><span class="fu">Gamma</span>(<span class="at">link=</span><span class="st">&quot;log&quot;</span>), <span class="at">data=</span>didelez_data))<span class="sc">$</span>coef</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept)   0.1286   0.001056   121.7        0</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            -0.2025   0.001478  -137.0        0</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>glmB <span class="ot">&lt;-</span> <span class="fu">glm</span>(B <span class="sc">~</span> A<span class="sc">*</span>L, <span class="at">family=</span>binomial, <span class="at">data=</span>didelez_data)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(glmB)<span class="sc">$</span>coef</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error  z value Pr(&gt;|z|)</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.304792   0.004907 -62.1162   0.0000</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.395848   0.006915  57.2463   0.0000</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; L            0.306277   0.003563  85.9550   0.0000</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:L          0.002625   0.005669   0.4631   0.6433</span></span></code></pre></div>
+<p>Indeed, all the parameters are close to their correct values.</p>
+<p>We can also use inverse probability weighting to check the causal
+relationship for <span class="math inline">\(Y\)</span>.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ps <span class="ot">&lt;-</span> <span class="fu">fitted</span>(glmB)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>wt <span class="ot">&lt;-</span> didelez_data<span class="sc">$</span>B<span class="sc">/</span>ps <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>didelez_data<span class="sc">$</span>B)<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>ps)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">svyglm</span>(Y <span class="sc">~</span> A<span class="sc">*</span>B, <span class="at">design =</span> <span class="fu">svydesign</span>(<span class="sc">~</span><span class="dv">1</span>, <span class="at">weights=</span><span class="sc">~</span>wt, <span class="at">data =</span> didelez_data)))<span class="sc">$</span>coef</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error   t value Pr(&gt;|t|)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.496985   0.001280 -388.3295   0.0000</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.197699   0.001807  109.3792   0.0000</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B            0.296985   0.001784  166.4272   0.0000</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B          0.002257   0.002430    0.9286   0.3531</span></span></code></pre></div>
+<div id="outcome-regression" class="section level3">
+<h3>Outcome Regression</h3>
+<p>We start with a naive outcome regression approach, where we fit a
+linear model for <span class="math inline">\(Y\)</span> regressed on
+various combinations of <span class="math inline">\(A_0,A_1\)</span> and
+<span class="math inline">\(L\)</span>. As we can see, none yield the
+parameters that interest us.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>lmY_AB <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> A<span class="sc">*</span>B, <span class="at">data=</span>didelez_data)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>lmY_AB_L <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> A<span class="sc">*</span>B <span class="sc">+</span> L, <span class="at">data=</span>didelez_data)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>lmY_ABL <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> A<span class="sc">*</span>B<span class="sc">*</span>L, <span class="at">data=</span>didelez_data)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lmY_AB)<span class="sc">$</span>coef</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error   t value Pr(&gt;|t|)</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.516882   0.001216 -425.0634   0.0000</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.195201   0.001784  109.4146   0.0000</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B            0.336093   0.001702  197.4239   0.0000</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B          0.001218   0.002403    0.5066   0.6124</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lmY_AB_L)<span class="sc">$</span>coef</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error  t value  Pr(&gt;|t|)</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.74439  0.0013994 -531.935 0.000e+00</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.23557  0.0017169  137.204 0.000e+00</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B            0.28965  0.0016407  176.538 0.000e+00</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; L            0.22090  0.0007505  294.322 0.000e+00</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B          0.01724  0.0023062    7.474 7.799e-14</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lmY_ABL)<span class="sc">$</span>coef</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error    t value   Pr(&gt;|t|)</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.7210773   0.001969 -366.20675  0.000e+00</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.1522870   0.002894   52.61668  0.000e+00</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B            0.3232238   0.002758  117.21527  0.000e+00</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; L            0.1982637   0.001542  128.59632  0.000e+00</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B          0.0001601   0.003897    0.04109  9.672e-01</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:L          0.0934292   0.002544   36.73181 3.578e-295</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B:L         -0.0232332   0.001988  -11.68404  1.545e-31</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B:L       -0.0034154   0.003181   -1.07372  2.829e-01</span></span></code></pre></div>
+</div>
+<div id="inverse-propensity-weighting" class="section level3">
+<h3>Inverse Propensity Weighting</h3>
+<p>We can try the rather more principled approach of using inverse
+propensity score weighting, and this time the estimates are
+unbiased.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="do">## get the weights from model for B</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>glmB <span class="ot">&lt;-</span> <span class="fu">glm</span>(B <span class="sc">~</span> A<span class="sc">*</span>L, <span class="at">family=</span>binomial, <span class="at">data=</span>didelez_data)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>ps <span class="ot">&lt;-</span> <span class="fu">fitted</span>(glmB)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>wt <span class="ot">&lt;-</span> didelez_data<span class="sc">$</span>B<span class="sc">/</span>ps <span class="sc">+</span> (<span class="dv">1</span><span class="sc">-</span>didelez_data<span class="sc">$</span>B)<span class="sc">/</span>(<span class="dv">1</span><span class="sc">-</span>ps) </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>lmY_AB_w <span class="ot">&lt;-</span> <span class="fu">svyglm</span>(Y <span class="sc">~</span> A<span class="sc">*</span>B, <span class="at">design =</span> <span class="fu">svydesign</span>(<span class="at">id=</span><span class="sc">~</span><span class="dv">1</span>, <span class="at">data=</span>didelez_data, <span class="at">weights =</span> <span class="sc">~</span>wt))</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(lmY_AB_w)<span class="sc">$</span>coef</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error   t value Pr(&gt;|t|)</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.496985   0.001280 -388.3295   0.0000</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.197699   0.001807  109.3792   0.0000</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B            0.296985   0.001784  166.4272   0.0000</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B          0.002257   0.002430    0.9286   0.3531</span></span></code></pre></div>
+<p>Notice that the coefficients are now correct.</p>
+</div>
+<div id="doubly-robust-approach" class="section level3">
+<h3>Doubly Robust Approach</h3>
+<p>We can also use an approach based on doubly-robust estimating
+equations.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="do">## get datasets with different values of B</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>dat0 <span class="ot">&lt;-</span> dat1 <span class="ot">&lt;-</span> didelez_data</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>dat0<span class="sc">$</span>B <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>dat1<span class="sc">$</span>B <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="do">## get outcome models</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>glmY <span class="ot">&lt;-</span> <span class="fu">lm</span>(Y <span class="sc">~</span> B<span class="sc">*</span><span class="fu">I</span>(<span class="fu">log</span>(L)), <span class="at">data=</span>didelez_data)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>q <span class="ot">&lt;-</span> <span class="fu">predict</span>(glmY, didelez_data)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>q0 <span class="ot">&lt;-</span> <span class="fu">predict</span>(glmY, dat0)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>q1 <span class="ot">&lt;-</span> <span class="fu">predict</span>(glmY, dat1)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>n0 <span class="ot">&lt;-</span> <span class="fu">sum</span>(didelez_data<span class="sc">$</span>A <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>n1 <span class="ot">&lt;-</span> <span class="fu">sum</span>(didelez_data<span class="sc">$</span>A <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="do">## weights</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>w1 <span class="ot">&lt;-</span> <span class="fu">fitted</span>(glmB)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>w1[didelez_data<span class="sc">$</span>B<span class="sc">==</span><span class="dv">0</span>] <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> w1[didelez_data<span class="sc">$</span>B<span class="sc">==</span><span class="dv">0</span>]</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>w0 <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span>, <span class="fu">nrow</span>(didelez_data))</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># w0 &lt;- predict(glmA, dat, &quot;response&quot;)</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="co"># w0[dat$A==0] &lt;- 1 - w0[dat$A==0]</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> w0 <span class="sc">*</span> w1</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a><span class="do">## obtain E[Y | do(A=A,B=B)] for each (A,B)</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>wts01 <span class="ot">&lt;-</span> ((didelez_data<span class="sc">$</span>Y <span class="sc">-</span> q)<span class="sc">*</span>didelez_data<span class="sc">$</span>B<span class="sc">/</span>w <span class="sc">+</span> q1)[didelez_data<span class="sc">$</span>A <span class="sc">==</span> <span class="dv">0</span>]</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>wts00 <span class="ot">&lt;-</span> ((didelez_data<span class="sc">$</span>Y <span class="sc">-</span> q)<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>didelez_data<span class="sc">$</span>B)<span class="sc">/</span>w <span class="sc">+</span> q0)[didelez_data<span class="sc">$</span>A <span class="sc">==</span> <span class="dv">0</span>]</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>wts11 <span class="ot">&lt;-</span> ((didelez_data<span class="sc">$</span>Y <span class="sc">-</span> q)<span class="sc">*</span>didelez_data<span class="sc">$</span>B<span class="sc">/</span>w <span class="sc">+</span> q1)[didelez_data<span class="sc">$</span>A <span class="sc">==</span> <span class="dv">1</span>]</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>wts10 <span class="ot">&lt;-</span> ((didelez_data<span class="sc">$</span>Y <span class="sc">-</span> q)<span class="sc">*</span>(<span class="dv">1</span><span class="sc">-</span>didelez_data<span class="sc">$</span>B)<span class="sc">/</span>w <span class="sc">+</span> q0)[didelez_data<span class="sc">$</span>A <span class="sc">==</span> <span class="dv">1</span>]</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>se00 <span class="ot">&lt;-</span> <span class="fu">sd</span>(wts00)<span class="sc">/</span><span class="fu">sqrt</span>(n0)</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>se10 <span class="ot">&lt;-</span> <span class="fu">sd</span>(wts10)<span class="sc">/</span><span class="fu">sqrt</span>(n1)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>se01 <span class="ot">&lt;-</span> <span class="fu">sd</span>(wts01)<span class="sc">/</span><span class="fu">sqrt</span>(n0)</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>se11 <span class="ot">&lt;-</span> <span class="fu">sd</span>(wts11)<span class="sc">/</span><span class="fu">sqrt</span>(n1)</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>cse00_01 <span class="ot">&lt;-</span> <span class="fu">mean</span>((wts00 <span class="sc">-</span> <span class="fu">mean</span>(wts00))<span class="sc">*</span>(wts01 <span class="sc">-</span> <span class="fu">mean</span>(wts01)))<span class="sc">/</span>n0</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>cse10_11 <span class="ot">&lt;-</span> <span class="fu">mean</span>((wts10 <span class="sc">-</span> <span class="fu">mean</span>(wts10))<span class="sc">*</span>(wts11 <span class="sc">-</span> <span class="fu">mean</span>(wts11)))<span class="sc">/</span>n1</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a><span class="do">## use these to obtain estimates, standard errors and bias</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>est <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">mean</span>(wts00), <span class="fu">mean</span>(wts10) <span class="sc">-</span> <span class="fu">mean</span>(wts00), <span class="fu">mean</span>(wts01 <span class="sc">-</span> wts00), <span class="fu">mean</span>(wts11 <span class="sc">-</span> wts10) <span class="sc">-</span> <span class="fu">mean</span>(wts01 <span class="sc">-</span> wts00))</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>se <span class="ot">&lt;-</span> <span class="fu">c</span>(se00, </span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sqrt</span>(se10<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>cse00_01 <span class="sc">+</span> se00<span class="sc">^</span><span class="dv">2</span>), </span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sqrt</span>(se01<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> se00<span class="sc">^</span><span class="dv">2</span>),</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>        <span class="fu">sqrt</span>(se10<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>cse00_01 <span class="sc">+</span> se00<span class="sc">^</span><span class="dv">2</span>) <span class="sc">+</span> <span class="fu">sqrt</span>(se10<span class="sc">^</span><span class="dv">2</span> <span class="sc">-</span> <span class="dv">2</span><span class="sc">*</span>cse10_11 <span class="sc">+</span> se11<span class="sc">^</span><span class="dv">2</span>))</span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>tab_dr <span class="ot">&lt;-</span> <span class="fu">cbind</span>(est, se)</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="fu">rownames</span>(tab_dr) <span class="ot">&lt;-</span> <span class="fu">rownames</span>(tab_ipw)</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>tab_dr</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                   est       se</span></span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept) -0.497003 0.001261</span></span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.197665 0.001762</span></span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B            0.297056 0.001767</span></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B          0.002327 0.003353</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>bias <span class="ot">&lt;-</span> est <span class="sc">-</span> pars<span class="sc">$</span>Y<span class="sc">$</span>beta</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>tab_dr <span class="ot">&lt;-</span> <span class="fu">cbind</span>(est, se, bias)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(tab_dr) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Est.&quot;</span>, <span class="st">&quot;SE&quot;</span>, <span class="st">&quot;Bias&quot;</span>)</span></code></pre></div>
+</div>
+<div id="maximum-likelihood" class="section level3">
+<h3>Maximum Likelihood</h3>
+<p>Finally, we can fit using our own code with the black-box optimizer,
+and since we are fitting the correct model it is guaranteed to be
+consistent and asymptotically efficient.</p>
+<p>We use 1000 samples for this exercise due to time limitations.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> didelez_data[<span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>, ]</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>modY <span class="ot">&lt;-</span> <span class="fu">fitCausal</span>(<span class="fu">as.data.frame</span>(dat), <span class="at">formulas =</span> <span class="fu">list</span>(Y <span class="sc">~</span> A<span class="sc">*</span>B, L <span class="sc">~</span> A, <span class="sc">~</span> A<span class="sc">*</span>B),</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                  <span class="at">family =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">1</span>), <span class="at">control=</span><span class="fu">list</span>(<span class="at">maxit=</span><span class="fl">2e4</span>, <span class="at">newton=</span><span class="cn">TRUE</span>))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Newton&#39;s algorithm failed, exiting</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>modY</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; log-likelihood:  -1817 </span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Y ~ A * B</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                est.   s.e. sandwich</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (intercept) -0.5109 0.0393   0.0403</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.2367 0.0571   0.0580</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B            0.2968 0.0542   0.0540</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B         -0.0145 0.0748   0.0748</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   residual s.e.:  0.403 0.0181 0.0176 </span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; L ~ A</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;               est.   s.e. sandwich</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (intercept)  0.136 0.0329   0.0348</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A           -0.206 0.0463   0.0476</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   residual s.e.:  0.537 0.0222 0.0215 </span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; copula parameters:</span></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; cop ~ A + B + A:B</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;               est.  s.e. sandwich</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (intercept)  0.620 0.127    0.123</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A            0.409 0.186    0.172</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; B            0.156 0.172    0.175</span></span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; A:B         -0.288 0.242    0.240</span></span></code></pre></div>
+<pre><code>#&gt;                 Est.      SE      Bias
+#&gt; (intercept) -0.51090 0.03929 -0.010896
+#&gt; A            0.23674 0.05713  0.036738
+#&gt; B            0.29684 0.05420 -0.003159
+#&gt; A:B         -0.01454 0.07483 -0.014543</code></pre>
+</div>
+<div id="comparison-of-results" class="section level3">
+<h3>Comparison of Results</h3>
+<p>Outcome regression fails miserably, but this is to be expected
+because the model is hopelessly misspecified. IP weighting, double
+robust estimates and the MLE all appear to be correct.</p>
+<table>
+<thead>
+<tr>
+<th style="empty-cells: hide;border-bottom:hidden;" colspan="1">
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Outcome Regression
+</div>
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+IP Weighting
+</div>
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Double Robust
+</div>
+</th>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+MLE
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+SE
+</th>
+<th style="text-align:right;">
+Bias
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+SE
+</th>
+<th style="text-align:right;">
+Bias
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+SE
+</th>
+<th style="text-align:right;">
+Bias
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+SE
+</th>
+<th style="text-align:right;">
+Bias
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+-0.52
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+-0.017
+</td>
+<td style="text-align:right;">
+-0.5
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+<td style="text-align:right;">
+-0.5
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+<td style="text-align:right;">
+-0.51
+</td>
+<td style="text-align:right;">
+0.039
+</td>
+<td style="text-align:right;">
+-0.011
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:right;">
+0.20
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+-0.005
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+-0.002
+</td>
+<td style="text-align:right;">
+0.2
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+-0.002
+</td>
+<td style="text-align:right;">
+0.24
+</td>
+<td style="text-align:right;">
+0.057
+</td>
+<td style="text-align:right;">
+0.037
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+B
+</td>
+<td style="text-align:right;">
+0.34
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+0.036
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+-0.003
+</td>
+<td style="text-align:right;">
+0.3
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+-0.003
+</td>
+<td style="text-align:right;">
+0.30
+</td>
+<td style="text-align:right;">
+0.054
+</td>
+<td style="text-align:right;">
+-0.003
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+A:B
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+0.001
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.003
+</td>
+<td style="text-align:right;">
+0.002
+</td>
+<td style="text-align:right;">
+-0.01
+</td>
+<td style="text-align:right;">
+0.075
+</td>
+<td style="text-align:right;">
+-0.015
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

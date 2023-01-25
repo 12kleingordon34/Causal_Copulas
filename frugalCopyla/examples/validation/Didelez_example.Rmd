@@ -26,6 +26,7 @@ As always, we begin by loading the package.
 ```{r load, include=TRUE, message=FALSE}
 library(tidyverse)
 library(purrr)
+library(causl)
 library(survey)
 ```
 
@@ -35,6 +36,16 @@ We first select the variables in our model, choosing the ones mentioned in the r
 
 ```{r}
 didelez_data <- suppressMessages(read_csv('validation_datasets/didelez_simulation.csv'))
+```
+
+We next define the parameters for our model, again following Evans and Didelez (2021).
+
+```{r params}
+pars <- list(A0 = list(beta = 0),
+             L = list(beta = c(0.3,-0.2), phi=1),
+             A1 = list(beta = c(-0.3,0.4,0.3,0)), 
+             Y = list(beta = c(-0.5,0.2,0.3,0), phi=1),
+             cop = list(beta = c(1,0.5)))
 ```
 
 We can check that the distribution actually has the correct form for the first three variables ($A_0, L, A_1$):

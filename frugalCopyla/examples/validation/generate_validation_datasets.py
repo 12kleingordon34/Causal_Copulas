@@ -22,10 +22,8 @@ def main():
 	for rho in rhos:
 		multivar_gaussian_cop = {
 			'Z': {'dist': dist.Normal, 'formula': {'loc': 'Z ~ 1', 'scale': 'Z ~ 1'}, 'coeffs': {'loc': [0.], 'scale': [1.]}, 'link': {}},
-			#'X': {'dist': dist.Normal, 'formula': {'loc': 'X ~ Z', 'scale': 'X ~ Z'}, 'coeffs': {'loc': [0., rho], 'scale': [1., -jnp.square(rho)]}, 'link': {'scale': jnp.sqrt}},
-			#'Y': {'dist': dist.Normal, 'formula': {'loc': 'Y ~ X', 'scale': 'Y ~ 1'}, 'coeffs': {'loc': [-0.5, rho], 'scale': [1.]}, 'link': {}},
-			'X': {'dist': dist.Normal, 'formula': {'loc': 'X ~ Z', 'scale': 'X ~ Z'}, 'coeffs': {'loc': [0., 1], 'scale': [1., 0.]}, 'link': {'scale': jnp.sqrt}},
-			'Y': {'dist': dist.Normal, 'formula': {'loc': 'Y ~ X', 'scale': 'Y ~ 1'}, 'coeffs': {'loc': [-0.5, 1.], 'scale': [1.]}, 'link': {}},
+			'X': {'dist': dist.Normal, 'formula': {'loc': 'X ~ Z', 'scale': 'X ~ Z'}, 'coeffs': {'loc': [0., rho], 'scale': [1., -jnp.square(rho)]}, 'link': {'scale': jnp.sqrt}},
+			'Y': {'dist': dist.Normal, 'formula': {'loc': 'Y ~ X', 'scale': 'Y ~ 1'}, 'coeffs': {'loc': [-0.5, rho], 'scale': [1.]}, 'link': {}},
 			'copula': {
 				'class': copula_functions.multivar_gaussian_copula_lpdf,
 				'vars': ['Z', 'Y'],
