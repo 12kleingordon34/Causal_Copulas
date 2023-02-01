@@ -1,8 +1,6 @@
 library(tidyverse)
 library(causl)
 
-trivar_gaussian_rho <- 0.6
-
 data_sizes <- c(1e2, 1e3, 1e4, 1e5, 1e6)
 
 list_of_formulae <- list(
@@ -33,12 +31,6 @@ list_of_pars <- list(
     A1 = list(beta = c(-0.3,0.4,0.3,0)), 
     Y = list(beta = c(-0.5,0.2,0.3,0), phi=1),
     cop = list(beta = c(1,0.5))
-  ),
-  'trivariate_gaussian' = list(
-    Z = list(beta=0, phi=1),
-    X = list(beta=c(0, trivar_gaussian_rho), phi=trivar_gaussian_rho),
-    Y = list(beta=c(-0.5, 0.5), phi=1),
-    cop=list(beta=c(0.5))
   )
 )
 
@@ -51,8 +43,8 @@ sim_data_functions <- list(
   'rfrugalParam'=rfrugalParam,
   'causlSamp'=causalSamp
 )
-rhos <- c(0.2, 0.4, 0.6)#, 0.8)
-data_sizes <- c(1e2, 1e3, 1e4, 1e5)#, 1e6)
+rhos <- c(0.2, 0.4, 0.6, 0.8)
+data_sizes <- c(1e2, 1e3, 1e4, 1e5, 1e6)
 model_types <- c('didelez', 'trivariate_gaussian')
 n_runs <- 3
 
