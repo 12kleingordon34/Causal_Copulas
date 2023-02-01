@@ -85,7 +85,7 @@ for (sampler_name in names(sim_data_functions)) {
         } else {
           print(paste0('Run ', i, ' / ', total_num_runs))
           start_time <- Sys.time()
-          dat_max <- causalSamp(
+          dat_max <- sim_data_functions[[sampler_name]](
             N, 
             formulas = list_of_formulae[[model_type]], 
             pars=list_of_pars[[model_type]], 
