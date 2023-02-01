@@ -25,11 +25,11 @@ def main():
 			'X': {'dist': dist.Normal, 'formula': {'loc': 'X ~ Z', 'scale': 'X ~ Z'}, 'coeffs': {'loc': [0., rho], 'scale': [1., -jnp.square(rho)]}, 'link': {'scale': jnp.sqrt}},
 			'Y': {'dist': dist.Normal, 'formula': {'loc': 'Y ~ X', 'scale': 'Y ~ 1'}, 'coeffs': {'loc': [-0.5, rho], 'scale': [1.]}, 'link': {}},
 			'copula': {
-				'class': copula_functions.multivar_gaussian_copula_lpdf,
+				'class': copula_functions.bivariate_gaussian_copula_lpdf,
 				'vars': ['Z', 'Y'],
-				'formula': {'rho_ZY': 'cop ~ Z'},
-				'coeffs': {'rho_ZY': [1., 0.]},
-				'link': {'rho_ZY': jax.scipy.special.expit}
+				'formula': {'rho_ZY': 'cop ~ 1'},
+				'coeffs': {'rho_ZY': [0.5]},
+				'link': {'rho_ZY': None}
 			}
 		}
 
@@ -53,13 +53,13 @@ def main():
 			}
 		}
 
-		gaussian_data = generate_cop_data(multivar_gaussian_cop, 1_000_000, 'continuous', 0)
+		gaussian_data = generate_cop_data(multivar_gaussian_cop, 1_00_000, 'continuous', 0)
 		#bernoulli_data = generate_cop_data(bernoulli_gaussian_cop, 1_000_000, 'mixed', 0)
 
 		gaussian_data.to_csv(f'./validation_datasets/multivar_gaussian/gaussian_cop_data_rho_{rho}.csv', index=False)
 		#bernoulli_data.to_csv(f'./validation_datasets/gaussian_bernoulli/bernoulli_cop_data_rho_{rho}.csv', index=False)
 	# Generate Didelez Data
-	didelez_data = generate_cop_data(didelez_cop, 1_000_000, 'mixed', 0)
+	didelez_data = generate_cop_data(didelez_cop, 1_000_00, 'mixed', 0)
 	didelez_data.to_csv(f'./validation_datasets/didelez_simulation.csv', index=False)
 
 

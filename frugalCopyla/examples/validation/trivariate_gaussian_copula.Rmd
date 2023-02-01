@@ -122,3 +122,40 @@ for (i in 1:length(paths)) {
   print(results)
 }
 ```
+
+## `causl` simulation
+
+```{r}
+rhos <- c(0.2, 0.5, 0.6, 0.7)
+for (rho in rhos) {
+  forms <- list(Z ~ 1, 
+                X ~ Z,
+                Y ~ X, 
+                ~ 1)
+  pars <- list(Z = list(beta = 0, phi=1),
+               X = list(beta = c(0, rho), phi=sqrt(1 - rho^2)),
+               Y = list(beta = c(-0.5, 1), phi=1),
+               cop = list(beta = c(1)))
+  
+  set.seed(124)
+  n <- 5e4
+  
+  dat_max <- causalSamp(n, formulas = forms, pars=pars)
+  cop_data <- suppressMessages(read_csv(path))
+  or_rho <- suppressMessages(lm(Y ~ X + Z, data=dat_max))
+
+  results <- as_tibble(summary(or_rho)$coef) %>%
+    mutate(true_coefs=c(-0.5, rhos[i], 10000)) %>%
+    mutate(ub=Estimate + 2 * `Std. Error`) %>%
+    mutate(lb=Estimate - 2 * `Std. Error`) %>%
+    mutate(
+      is_true_coef_in_estimate_range=if_else(
+        (ub> true_coefs) & (lb < true_coefs)
+      , TRUE, FALSE)
+    ) %>%
+    dplyr::select(-`t value`, `Pr(>|t|)`)
+  print(results)
+  i <- i + 1
+
+}
+```
