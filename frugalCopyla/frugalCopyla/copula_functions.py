@@ -25,10 +25,7 @@ def multivar_gaussian_copula_lpdf(vars: dict, rhos: dict) -> float:
     mean = jnp.zeros(len(rvs))
     cov = __reshape_matrix(len(rvs), list(rhos.values()), is_cholesky=False)
     llhood = jax_stats.multivariate_normal.logpdf(rvs, mean, cov)	
-    if not jnp.isnan(llhood).any():
-        return llhood
-    else:
-        return -jnp.inf
+    return llhood
 
 
 #def bivariate_gaussian_copula_lpdf(u, v, rho) -> float:
@@ -43,10 +40,7 @@ def bivariate_gaussian_copula_lpdf(vars: dict, rhos: dict) -> float:
             rho_2 * (u_2 + v_2) - 2 * rho * u * v
         ) / (2 * (1 - rho_2))
     )
-    if not jnp.isnan(llhood).any():
-        return llhood
-    else:
-        return -jnp.inf
+    return llhood
     
 
 

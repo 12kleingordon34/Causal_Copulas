@@ -146,7 +146,6 @@ class Copula_Model:
 					lin_models_evaluated[k] = test_row['link'][k](eval(v))
 				else:
 					lin_models_evaluated[k] = eval(v)
-			print(test_idx, lin_models_evaluated)
 			#### ITS NOT DOING ANYTHING WITH THE SCALE PARAMETER --- NEED TO FIX
 			if test_row['link']:
 				record_dict[test_idx] = numpyro.sample(
