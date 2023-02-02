@@ -44,9 +44,9 @@ sim_data_functions <- list(
   'causlSamp'=causalSamp
 )
 rhos <- c(0.2, 0.4, 0.6, 0.8)
-data_sizes <- c(1e2, 1e3, 1e4, 1e5, 1e6)
+data_sizes <- c(1e2, 1e3, 1e4, 1e5)#, 1e6)
 model_types <- c('didelez', 'trivariate_gaussian')
-n_runs <- 3
+n_runs <- 5
 
 total_num_runs <- length(data_sizes) * n_runs * (1 + length(rhos)) * length(sim_data_functions)
 results <- tibble()

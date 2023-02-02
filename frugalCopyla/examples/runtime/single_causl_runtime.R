@@ -74,7 +74,7 @@ if (model_type == 'trivariate_gaussian') {
   runtime <- Sys.time() - start_time
   dat_max <- NA
   results <- tibble(
-    sampler=sampler_name, model_type=model_type, N=N, runtime=runtime, rho=rho
+    sampler=sampler_name, model_type=model_type, N=N, runtime=runtime, idx=i, rho=rho
   )
 } else {
   start_time <- Sys.time()
@@ -86,7 +86,7 @@ if (model_type == 'trivariate_gaussian') {
   )
   runtime <- Sys.time() - start_time
   results <- tibble(
-    sampler=sampler_name, model_type=model_type, N=N, runtime=runtime, rho=NA
+    sampler=sampler_name, model_type=model_type, N=N, runtime=runtime, idx=i, rho=NA
   )
 }
 print(paste0("Time: ", Sys.time(), ' -- Run ', i))
