@@ -2,6 +2,8 @@ suppressMessages(library(argparse))
 suppressMessages(library(tidyverse))
 suppressMessages(library(causl))
 
+suppressMessages(gc())
+
 parser <- ArgumentParser()
 parser$add_argument("-l", "--line", default=TRUE,
                     help="Line to read from metadata")
@@ -17,7 +19,6 @@ sampler_name <- run_settings$sampler_name
 N <- run_settings$N
 rho <- run_settings$rho
 run_idx <- run_settings$rho
-
 
 list_of_formulae <- list(
   'didelez' = list(
@@ -84,7 +85,7 @@ if (model_type == 'trivariate_gaussian') {
     pars=list_of_pars[[model_type]],
     family = list_of_families[[model_type]]
   )
-  runtime <- Sys.time() - start_time
+  runtime <- difftime(Sys.time(), start_time, units='s')
   results <- tibble(
     sampler=sampler_name, model_type=model_type, N=N, runtime=runtime, idx=i, rho=NA
   )
@@ -94,3 +95,4 @@ if (!dir.exists('./data/')){
   dir.create('./data/')
 }
 write_csv(results, paste0('./data/results_row_', i, '.csv'))
+suppressMessages(gc())
