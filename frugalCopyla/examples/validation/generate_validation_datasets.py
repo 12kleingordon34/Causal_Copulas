@@ -18,7 +18,7 @@ def generate_cop_data(input_template: dict, sample_size: int, joint_status: str,
 
 
 def main():
-	rhos = [0.2, 0.4, 0.5, 0.7]
+	rhos = [0.2, 0.4, 0.6, 0.8]
 	for rho in rhos:
 		multivar_gaussian_cop = {
 			'Z': {'dist': dist.Normal, 'formula': {'loc': 'Z ~ 1', 'scale': 'Z ~ 1'}, 'coeffs': {'loc': [0.], 'scale': [1.]}, 'link': {}},
@@ -53,13 +53,13 @@ def main():
 			}
 		}
 
-		gaussian_data = generate_cop_data(multivar_gaussian_cop, 1_00_000, 'continuous', 0)
+		gaussian_data = generate_cop_data(multivar_gaussian_cop, 1_000_000, 'continuous', 0)
 		#bernoulli_data = generate_cop_data(bernoulli_gaussian_cop, 1_000_000, 'mixed', 0)
 
 		gaussian_data.to_csv(f'./validation_datasets/multivar_gaussian/gaussian_cop_data_rho_{rho}.csv', index=False)
 		#bernoulli_data.to_csv(f'./validation_datasets/gaussian_bernoulli/bernoulli_cop_data_rho_{rho}.csv', index=False)
 	# Generate Didelez Data
-	didelez_data = generate_cop_data(didelez_cop, 1_000_00, 'mixed', 0)
+	didelez_data = generate_cop_data(didelez_cop, 1_000_000, 'mixed', 0)
 	didelez_data.to_csv(f'./validation_datasets/didelez_simulation.csv', index=False)
 
 

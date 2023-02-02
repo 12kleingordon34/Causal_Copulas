@@ -40,13 +40,13 @@ library(tidyverse)
 
 In this example we work with the following model:
 $$Z~\sim~\mathcal{N}(0, 1) \\ X~|~Z~\sim~\mathcal{N}( \rho_{XZ} Z,~1 - \rho_{XZ}^{2}) \\ Y~|~\text{do}(X) \sim \mathcal{N}(X - 0.5,~1)$$
-with a gaussian copula correlation of $\rho_{YZ}=\text{expit}(1)$.
+with a gaussian copula correlation of $\rho_{YZ}=0.5$.
 
 ## Outcome Regression
 
 ```{r}
 data <- list()
-rhos <- c(0.2, 0.4, 0.5, 0.7)
+rhos <- c(0.2, 0.4, 0.6, 0.8)
 i <- 1
 for (path in list.files('validation_datasets/multivar_gaussian/', full.names=TRUE)) {
   print('================================================')
@@ -58,7 +58,7 @@ for (path in list.files('validation_datasets/multivar_gaussian/', full.names=TRU
   or_rho <- suppressMessages(lm(Y ~ X + Z, data=cop_data))
 
   results <- as_tibble(summary(or_rho)$coef) %>%
-    mutate(true_coefs=c(-0.5, rhos[i], 10000)) %>%
+    mutate(true_coefs=c(-0.5, rhos[i], 0.5)) %>%
     mutate(ub=Estimate + 2 * `Std. Error`) %>%
     mutate(lb=Estimate - 2 * `Std. Error`) %>%
     mutate(
@@ -71,13 +71,16 @@ for (path in list.files('validation_datasets/multivar_gaussian/', full.names=TRU
   i <- i + 1
 }
 ```
+The true regression coefficients (estimated theoretically) lie within the empirical regression estimates and their uncertainty estimates.
 
 ## IPW
+
+Due to the low overlap observed for larger $\rho$, IPW returns incorrect regression estimates for this exercise. However, the correct estimates via correctly specified Outcome Regression show that the generated data is indeed being drawn from our desired distribution.  
 
 ```{r}
 data <- list()
 paths <- list.files('validation_datasets/multivar_gaussian/', full.names=TRUE)
-rhos <- c(0.2, 0.4, 0.5, 0.7)
+rhos <- c(0.2, 0.4, 0.6, 0.8)
 
 for (i in 1:length(paths)) {
   path <- paths[i]
@@ -120,42 +123,5 @@ for (i in 1:length(paths)) {
     ) %>%
     dplyr::select(-`t value`, `Pr(>|t|)`)
   print(results)
-}
-```
-
-## `causl` simulation
-
-```{r}
-rhos <- c(0.2, 0.5, 0.6, 0.7)
-for (rho in rhos) {
-  forms <- list(Z ~ 1, 
-                X ~ Z,
-                Y ~ X, 
-                ~ 1)
-  pars <- list(Z = list(beta = 0, phi=1),
-               X = list(beta = c(0, rho), phi=sqrt(1 - rho^2)),
-               Y = list(beta = c(-0.5, 1), phi=1),
-               cop = list(beta = c(1)))
-  
-  set.seed(124)
-  n <- 5e4
-  
-  dat_max <- causalSamp(n, formulas = forms, pars=pars)
-  cop_data <- suppressMessages(read_csv(path))
-  or_rho <- suppressMessages(lm(Y ~ X + Z, data=dat_max))
-
-  results <- as_tibble(summary(or_rho)$coef) %>%
-    mutate(true_coefs=c(-0.5, rhos[i], 10000)) %>%
-    mutate(ub=Estimate + 2 * `Std. Error`) %>%
-    mutate(lb=Estimate - 2 * `Std. Error`) %>%
-    mutate(
-      is_true_coef_in_estimate_range=if_else(
-        (ub> true_coefs) & (lb < true_coefs)
-      , TRUE, FALSE)
-    ) %>%
-    dplyr::select(-`t value`, `Pr(>|t|)`)
-  print(results)
-  i <- i + 1
-
 }
 ```
