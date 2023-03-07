@@ -1,3 +1,4 @@
+import copy
 import inspect
 import random
 import re
@@ -9,7 +10,9 @@ import numpyro
 from numpyro.distributions import *
 import patsy
 
-2##### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
+from frugalCopyla.copula_functions import _reshape_matrix
+
+##### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
 ###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
@@ -21,13 +24,13 @@ import patsy
 _DISTRIBUTION_TYPES = ['discrete', 'continuous', 'mixed']
 
 
-class Copula_Model:
-	def __init__(self, model_dict: dict) -> None:
-		self.parsed_model = self._process_input_model(model_dict)
+class CopulaModel:
+	def __init__(self, input_dict: dict) -> None:
+		self.parsed_model = self._process_input_model(input_dict)
 		assert self._is_model_ordered_and_acyclic(self.parsed_model)
 
 
-	def _process_input_model(self, model_dict: dict) -> dict:
+	def _process_input_model(self, input_dict: dict) -> dict:
 		"""
 		Key steps:
 		* Check distributions are valid
@@ -37,6 +40,7 @@ class Copula_Model:
 		"""
 		parsed_model = dict()
 
+		model_dict = input_dict
 		copula_settings = model_dict.pop('copula', None)
 		for var, spec in model_dict.items():
 			parsed_model[var] = {'dist': model_dict[var]['dist'], 'formula': {}, 'coeffs': [], 'link': {}}
@@ -77,7 +81,8 @@ class Copula_Model:
 			'class': None,
 			'vars': [],
 			'corr_linear_predictor': {},
-			'link': {}
+			'link': {},
+			'misc': {}
 		}
 		parsed_model['copula']['class'] = copula_settings['class']
 		parsed_model['copula']['vars'] = copula_settings['vars'].copy()
@@ -89,8 +94,10 @@ class Copula_Model:
 			)
 			assert self._is_link_from_jax(copula_settings['link'][param])
 			parsed_model['copula']['link'][param] = copula_settings['link'][param]
-
-	
+		misc_params = copula_settings.get('misc', None)
+		if misc_params:
+			parsed_model['copula']['misc'] = misc_params
+		
 		return parsed_model
 		
 	def simulate_data(
@@ -98,6 +105,7 @@ class Copula_Model:
 		num_warmup: int,
 		num_samples: int,
 		joint_status: _DISTRIBUTION_TYPES,
+		num_chains: int = 4,
 		seed: int = random.randint(0, 10e6)
 	) -> dict:
 		# assert joint_status.lower() in ['discrete', 'continuous', 'mixed']
@@ -110,11 +118,13 @@ class Copula_Model:
 				numpyro.infer.NUTS(self._simulated_data_model),
 				modified=True
 			)
-					
+		numpyro.set_host_device_count(num_chains)		
 		mcmc_model = numpyro.infer.MCMC(
 			kernel,
+			num_chains=num_chains,
 			num_warmup=num_warmup,
 			num_samples=num_samples,
+			chain_method='parallel',
 			progress_bar=False
 		)
 		
@@ -122,7 +132,10 @@ class Copula_Model:
 			rng_key=jax.random.PRNGKey(seed)
 		)
 		## TO DO: Figure out how to return the data in a useful format.
-		return mcmc_model.get_samples()
+		return {
+			'model': mcmc_model,
+			'data': mcmc_model.get_samples()
+		}
 
 	def inference(self) -> dict:
 		"""
@@ -134,8 +147,8 @@ class Copula_Model:
 		pass
 
 	def _simulated_data_model(self) -> None:
-		prob_model = self.parsed_model.copy()
-		copula_model = prob_model.pop('copula', None)
+		prob_model = copy.deepcopy(self.parsed_model)
+		copula_params = prob_model.pop('copula', None)
 		record_dict = {}
 		for test_idx, test_row in prob_model.items():
 			lin_models_str = test_row['linear_predictor']
@@ -159,29 +172,25 @@ class Copula_Model:
 				)
 		
 		 	# Generate quantiles
-			if copula_model and test_idx in copula_model['vars']:
+			if copula_params and test_idx in copula_params['vars']:
 				record_dict[f"q_{test_idx}"] = numpyro.deterministic(
 					f"q_{test_idx}",
 					prob_model[test_idx]['dist'](**lin_models_evaluated).cdf(record_dict[test_idx])
 				)
-				record_dict[f"std_normal_{test_idx}"] = numpyro.deterministic(
-					f"std_normal_{test_idx}",
-					numpyro.distributions.Normal(0, 1).icdf(record_dict[f"q_{test_idx}"])
-				)
-			
-		if copula_model:
-			for idx, formula in copula_model['corr_linear_predictor'].items():
-				if copula_model['link'][idx]:
+
+		if copula_params:
+			for idx, formula in copula_params['corr_linear_predictor'].items():
+				if copula_params['link'][idx]:
 					record_dict[idx] = numpyro.deterministic(
 						idx,
 						###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
-						copula_model['link'][idx](eval(copula_model['corr_linear_predictor'][idx]))
+						copula_params['link'][idx](eval(copula_params['corr_linear_predictor'][idx]))
 					)
 				else:
 					record_dict[idx] = numpyro.deterministic(
 						idx,
 						###### PERHAPS CHECK WHETHER A LINK FUNCTION IS NECESSARY FOR EACH PARAMETER
-						eval(copula_model['corr_linear_predictor'][idx])
+						eval(copula_params['corr_linear_predictor'][idx])
 					)
 
 			
@@ -189,14 +198,14 @@ class Copula_Model:
 			#### HOW TO MAP THE VARS TO THE DICT
 			copula_var_dict = {}
 			copula_rho_dict = {}
-			for k in copula_model['vars']:
-				copula_var_dict[k] = record_dict[f"std_normal_{k}"]
-			for k, v in copula_model['corr_linear_predictor'].items():
+			for k in copula_params['vars']:
+				copula_var_dict[k] = record_dict[f"q_{k}"]
+			for k, v in copula_params['corr_linear_predictor'].items():
 				copula_rho_dict[k] = record_dict[k]
 
 			record_dict['cop_log_prob'] = numpyro.factor(
 				'cop_log_prob',
-				copula_model['class'](copula_var_dict, copula_rho_dict)
+				copula_params['class'](copula_var_dict, copula_rho_dict, **copula_params['misc'])
 			)
 
 	def _is_dist_from_numpyro(self, prob_distribution: numpyro.distributions) -> bool:
@@ -315,7 +324,7 @@ class Copula_Model:
 		orig_vars = re.findall(r"[\w,\_]", key_formula)
 		new_vars = []
 		for var in orig_vars:
-			new_vars.append(f"record_dict['{var}']")
+			new_vars.append(f"record_dict['{var.strip()}']")
 		
 		new_formula = key_formula
 		for orig_var, new_var in zip(orig_vars, new_vars):

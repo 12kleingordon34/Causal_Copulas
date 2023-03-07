@@ -62,34 +62,28 @@ sim_data_functions <- list(
 )
 
 
-
+pars = generate_corr_gaussian_pars(rho)
+start_time <- Sys.time()
 if (model_type == 'trivariate_gaussian') {
-  pars = generate_corr_gaussian_pars(rho)
-  start_time <- Sys.time()
   dat_max <- sim_data_functions[[sampler_name]](
     N,
     formulas = list_of_formulae[[model_type]],
     pars=pars,
     family = list_of_families[[model_type]]
   )
-  runtime <- Sys.time() - start_time
-  dat_max <- NA
-  results <- tibble(
-    sampler=sampler_name, model_type=model_type, N=N, runtime=runtime, idx=i, rho=rho
-  )
 } else {
-  start_time <- Sys.time()
   dat_max <- sim_data_functions[[sampler_name]](
     N,
     formulas = list_of_formulae[[model_type]],
     pars=list_of_pars[[model_type]],
     family = list_of_families[[model_type]]
   )
-  runtime <- difftime(Sys.time(), start_time, units='s')
-  results <- tibble(
-    sampler=sampler_name, model_type=model_type, N=N, runtime=runtime, idx=i, rho=NA
-  )
 }
+runtime <- difftime(Sys.time(), start_time, units='s')
+results <- tibble(
+  sampler_name=sampler_name, model_type=model_type, N=N, runtime=runtime, run_idx=i, rho=rho
+)
+
 print(paste0("Time: ", Sys.time(), ' -- Run ', i))
 if (!dir.exists('./data/')){
   dir.create('./data/')

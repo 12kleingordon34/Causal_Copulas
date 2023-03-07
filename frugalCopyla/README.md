@@ -13,7 +13,7 @@ to install the package and its dependencies.
 
 ## Usage
 
-The core of the package is the `frugalCopyla.Copula_Model` class, which takes in a dictionary specifying a frugal causal model and allows you to draw data from that distribution. The input provided to the class (i.e. the specification of the model) is flexible and straightforward, and does not require you to program a custom model/sampling routine in the `numpyro`/`jax` backend.
+The core of the package is the `frugalCopyla.CopulaModel` class, which takes in a dictionary specifying a frugal causal model and allows you to draw data from that distribution. The input provided to the class (i.e. the specification of the model) is flexible and straightforward, and does not require you to program a custom model/sampling routine in the `numpyro`/`jax` backend.
 
 See example of use [here]('./examples/basic_demo.ipynb').
 
@@ -39,10 +39,10 @@ will wrap the linear predictor in an exponential function such that the probabil
 
 #### Viewing Parsed Model
 
-To check whether the model has been parsed correctly, you can check the `parsed_model` property of a `Copula_Model` class:
+To check whether the model has been parsed correctly, you can check the `parsed_model` property of a `CopulaModel` class:
 ```
 ...
->>> cop_mod = Copula_Model(input_dict)
+>>> cop_mod = CopulaModel(input_dict)
 >>> cop_mod.parsed_model
 
 {'Z': {'dist': numpyro.distributions.continuous.Normal,
@@ -86,7 +86,7 @@ input_dict = {
     }
 }
 
-model = frugalCopyla.model.Copula_Model(input_dict)
+model = frugalCopyla.model.CopulaModel(input_dict)
 data = model.simulate_data(num_warmup=1000, num_samples=1000, joint_status='continuous')
 ```
 which allows one to simulate from the following causal model: $$Z \sim \mathcal{N}(0, 1) \\ X \sim \text{Exponential}(\exp(Z + 1) \\ Y | \text{do}(X) \sim \mathcal{N}(X - 0.5, 1)$$ with a bivariate Gaussian copula between $Z$ and $Y$ parameterised by a fixed covariance term $\rho_{ZY} = logit(1)$

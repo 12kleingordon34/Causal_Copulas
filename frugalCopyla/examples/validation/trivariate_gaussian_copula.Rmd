@@ -48,7 +48,7 @@ with a gaussian copula correlation of $\rho_{YZ}=0.5$.
 data <- list()
 rhos <- c(0.2, 0.4, 0.6, 0.8)
 i <- 1
-for (path in list.files('validation_datasets/multivar_gaussian/', full.names=TRUE)) {
+for (path in list.files('validation_datasets/multivar_gaussian/', pattern='gaussian_cop', full.names=TRUE)) {
   print('================================================')
   print(paste0('For dataset: ', path))
   print('================================================')  
@@ -79,7 +79,7 @@ Due to the low overlap observed for larger $\rho$, IPW returns incorrect regress
 
 ```{r}
 data <- list()
-paths <- list.files('validation_datasets/multivar_gaussian/', full.names=TRUE)
+paths <- list.files('validation_datasets/multivar_gaussian/', pattern='gaussian_cop', full.names=TRUE)
 rhos <- c(0.2, 0.4, 0.6, 0.8)
 
 for (i in 1:length(paths)) {
